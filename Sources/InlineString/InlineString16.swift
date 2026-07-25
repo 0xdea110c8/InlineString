@@ -1,0 +1,237 @@
+/// A fixed-capacity UTF-8 string stored entirely inline.
+///
+/// `InlineString` stores UTF-8 bytes directly within the value without heap allocation.
+///  The capacity is specified at compile time using a const generic parameter.
+///
+/// Unlike `String`, the maximum size is fixed and measured in UTF-8 bytes,
+/// making `InlineString` suitable for performance-critical code
+/// where predictable memory layout and value semantics are important.
+public struct InlineString16: BitwiseCopyable, Sendable {
+    
+    // MARK: - Types
+    
+    /// Errors thrown by `InlineString`.
+    public enum InlineStringError: Error {
+        /// The UTF-8 representation of a string exceeds the inline capacity.
+        case capacityExceeded
+    }
+    
+    // MARK: - Public properties
+    
+    /// The maximum number of UTF-8 bytes that can be stored.
+    public var capacity: Int {
+        16
+    }
+    
+    /// A Boolean value indicating whether the inline string is empty.
+    public var isEmpty: Bool {
+        count == 0
+    }
+    
+    /// The number of remaining UTF-8 bytes available for writing.
+    public var remainingCapacity: Int {
+        capacity - count
+    }
+    
+    /// The contents of the inline storage as a `String`.
+    public var string: String {
+        withUnsafeBytes(of: _storage) { buffer in
+            let bytes = buffer.prefix(count)
+            return String(decoding: bytes, as: UTF8.self)
+        }
+    }
+    
+    /// The number of UTF-8 bytes currently stored.
+    public private(set) var count: Int
+    
+    // MARK: - Private properties
+    
+    /// Inline storage for UTF-8 bytes.
+    private(set) var _storage: (
+        UInt8, UInt8, UInt8, UInt8,
+        UInt8, UInt8, UInt8, UInt8,
+        UInt8, UInt8, UInt8, UInt8,
+        UInt8, UInt8, UInt8, UInt8
+    )
+    
+    // MARK: - Initializers
+    
+    /// Creates an empty `InlineString`.
+    init() {
+        _storage = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        count = 0
+    }
+    
+    /// Creates an `InlineString` by copying UTF-8 bytes from `string`,
+    /// truncating the input to the fixed `capacity` if necessary.
+    /// - Parameter string: The source string to copy into the inline storage.
+    /// - Note: Truncation occurs at UTF-8 byte boundaries (not character/scalar boundaries).
+    ///         If `string` exceeds `capacity` in UTF-8 bytes, only the first `capacity` bytes are stored.
+    init(truncating string: String) {
+        self.init()
+        append(truncating: string)
+    }
+    
+    /// Creates an `InlineString` from a decoded string.
+    /// - Parameter value: The decoded string.
+    /// - Throws: ``InlineStringError/capacityExceeded``
+    ///           if the UTF-8 representation exceeds ``capacity`` bytes.
+    init(decoding value: String) throws {
+        self.init()
+        guard append(value) else {
+            throw InlineStringError.capacityExceeded
+        }
+    }
+    
+    // MARK: - Public methods
+    
+    /// Appends the UTF-8 contents of a string.
+    /// - Parameter string: The string to append.
+    /// - Returns: `true` if the string was appended successfully;
+    ///            otherwise `false` if there is insufficient remaining capacity.
+    @discardableResult
+    public mutating func append(_ string: String) -> Bool {
+        let offset = self.count
+        let remainingCapacity = self.remainingCapacity
+        let utf8 = string.utf8
+        let count = utf8.count
+        guard count <= remainingCapacity else {
+            return false
+        }
+        withUnsafeMutableBytes(of: &_storage) {
+            $0[offset..<offset + count].copyBytes(from: utf8)
+        }
+        self.count += count
+        return true
+    }
+    
+    /// Appends the UTF-8 bytes of `string`, truncating to the remaining capacity if needed.
+    /// - Parameter string: The source string to append.
+    /// - Returns: The number of UTF-8 bytes actually appended.
+    /// - Note: Truncation occurs at UTF-8 byte boundaries (not character/scalar boundaries).
+    @discardableResult
+    public mutating func append(truncating string: String) -> Int {
+        let offset = self.count
+        let remainingCapacity = self.remainingCapacity
+        let utf8 = string.utf8
+        let count = utf8.count
+        guard remainingCapacity > 0 else {
+            return 0
+        }
+        let toCopy = min(count, remainingCapacity)
+        let stringToCopy = utf8.prefix(toCopy)
+        withUnsafeMutableBytes(of: &_storage) {
+            $0[offset..<offset + toCopy].copyBytes(from: stringToCopy)
+        }
+        self.count += toCopy
+        return toCopy
+    }
+    
+    /// Removes all stored bytes.
+    /// - Note: The allocated inline storage is preserved.
+    public mutating func clear() {
+        count = 0
+    }
+    
+    /// Provides temporary access to the stored UTF-8 bytes.
+    /// The buffer is valid only for the duration of `body`.
+    /// - Parameter body: A closure that receives a buffer containing the stored UTF-8 bytes.
+    /// - Returns: The value returned by `body`.
+    /// - Throws: Rethrows any error thrown by `body`.
+    public func withUTF8<R>(_ body: (UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R {
+        try withUnsafeBytes(of: _storage) { rawBuffer in
+            let buffer = rawBuffer.bindMemory(to: UInt8.self)
+            return try body(UnsafeBufferPointer(rebasing: buffer[..<count]))
+        }
+    }
+}
+
+// MARK: - CustomStringConvertible
+
+extension InlineString16: CustomStringConvertible {
+    /// A textual representation of this value.
+    public var description: String {
+        string
+    }
+}
+
+// MARK: - CustomDebugStringConvertible
+
+extension InlineString16: CustomDebugStringConvertible {
+    /// A debug representation of this value.
+    public var debugDescription: String {
+        "InlineString16(\"\(string)\")"
+    }
+}
+
+// MARK: - Decodable
+
+extension InlineString16: Decodable {
+    /// Creates an instance by decoding a string.
+    /// - Parameter decoder: The decoder to read from.
+    /// - Throws: A decoding error if the decoded string exceeds ``capacity`` bytes.
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let value = try container.decode(String.self)
+        try self.init(decoding: value)
+    }
+}
+
+// MARK: - Encodable
+
+extension InlineString16: Encodable {
+    /// Encodes this value as a single string.
+    /// - Parameter encoder: The encoder to write to.
+    /// - Throws: An error if encoding fails.
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(string)
+    }
+}
+
+// MARK: - Equatable
+
+extension InlineString16: Equatable {
+    /// Returns a Boolean value indicating whether two inline strings contain the same UTF-8 bytes.
+    public static func == (lhs: InlineString16, rhs: InlineString16) -> Bool {
+        guard lhs.count == rhs.count else {
+            return false
+        }
+        if lhs.count == 0 {
+            return true
+        }
+        return withUnsafeBytes(of: lhs._storage) { lhsBuffer in
+            withUnsafeBytes(of: rhs._storage) { rhsBuffer in
+                for index in 0..<lhs.count {
+                    if lhsBuffer[index] != rhsBuffer[index] {
+                        return false
+                    }
+                }
+                return true
+            }
+        }
+    }
+}
+
+// MARK: - ExpressibleByStringLiteral
+
+extension InlineString16: ExpressibleByStringLiteral {
+    /// Creates an `InlineString` from a string literal.
+    /// - Parameter value: The string literal.
+    /// - Note: Truncation occurs at UTF-8 byte boundaries (not character/scalar boundaries).
+    ///         If `string` exceeds `capacity` in UTF-8 bytes, only the first `capacity` bytes are stored.
+    public init(stringLiteral value: StringLiteralType) {
+        self.init(truncating: value)
+    }
+}
+
+// MARK: - String + InlineString
+
+extension String {
+    /// Creates a `String` from an `InlineString`.
+    /// - Parameter value: The inline string to convert.
+    public init(_ value: InlineString16) {
+        self = value.string
+    }
+}
+
