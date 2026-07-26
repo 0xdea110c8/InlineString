@@ -254,24 +254,7 @@ extension InlineString16: Encodable {
 extension InlineString16: Equatable {
     /// Returns a Boolean value indicating whether two inline strings contain the same UTF-8 bytes.
     public static func == (lhs: InlineString16, rhs: InlineString16) -> Bool {
-        guard lhs.count == rhs.count else {
-            return false
-        }
-        
-        if lhs.count == 0 {
-            return true
-        }
-        
-        return withUnsafeBytes(of: lhs._storage) { lhsBuffer in
-            withUnsafeBytes(of: rhs._storage) { rhsBuffer in
-                for index in 0..<lhs.count {
-                    if lhsBuffer[index] != rhsBuffer[index] {
-                        return false
-                    }
-                }
-                return true
-            }
-        }
+        lhs.high == rhs.high && lhs.low == rhs.low
     }
 }
 
