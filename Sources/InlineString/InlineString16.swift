@@ -79,7 +79,6 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// Creates an empty `InlineString16`.
     init() {
         _storage = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-        count = 0
     }
     
     /// Creates an `InlineString16` by copying UTF-8 bytes from `string`,

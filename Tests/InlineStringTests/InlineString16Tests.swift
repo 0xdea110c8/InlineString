@@ -63,11 +63,11 @@ struct InlineString16Tests {
         #expect(string == decodedUTF8)
     }
     
-    @Test("init() creates zeroed storage with the given capacity and sets the count to zero")
+    @Test("init() creates empty inline string with zeroed storage")
     func initCreatesZeroedStorage() {
         let inlineString = InlineString16()
         withUnsafeBytes(of: inlineString._storage) { bytes in
-            #expect(bytes.count == 16)
+            #expect(bytes.count == InlineString16.capacity)
             #expect(bytes.allSatisfy { $0 == 0 })
         }
         #expect(inlineString.count == 0)
