@@ -77,7 +77,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     // MARK: - Initializers
     
     /// Creates an empty `InlineString16`.
-    init() {
+    public init() {
         _storage = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     }
     
@@ -86,7 +86,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// - Parameter string: The source string to copy into the inline storage.
     /// - Note: Truncation occurs at UTF-8 byte boundaries (not character/scalar boundaries).
     ///         If `string` exceeds `capacity` in UTF-8 bytes, only the first `capacity` bytes are stored.
-    init(truncating string: String) {
+    public init(truncating string: String) {
         self.init()
         append(truncating: string)
     }
