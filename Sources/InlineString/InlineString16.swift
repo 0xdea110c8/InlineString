@@ -53,7 +53,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     
     /// The number of remaining UTF-8 bytes available for writing.
     public var remainingCapacity: Int {
-        capacity - count
+        Self.capacity - count
     }
     
     /// The contents of the inline storage as a `String`.
