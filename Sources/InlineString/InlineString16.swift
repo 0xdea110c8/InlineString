@@ -80,12 +80,16 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     }
     
     /// The contents of the inline storage as a `String` decoded from UTF-8.
-//    public var string: String {
-//        withUnsafeBytes(of: _storage) { buffer in
-//            let bytes = buffer.prefix(count)
-//            return String(decoding: bytes, as: UTF8.self)
-//        }
-//    }
+    public var string: String {
+        var bytes: [UInt8] = []
+        bytes.reserveCapacity(count)
+
+        for index in 0..<count {
+            bytes.append(_rawByte(at: index))
+        }
+
+        return String(decoding: bytes, as: UTF8.self)
+    }
     
     // MARK: - Private properties
     
