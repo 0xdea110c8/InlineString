@@ -208,23 +208,24 @@ extension InlineString16: Equatable {
     }
 }
 
-//// MARK: - CustomStringConvertible
-//
-//extension InlineString16: CustomStringConvertible {
-//    /// A textual representation of this value.
-//    public var description: String {
-//        string
-//    }
-//}
-//
-//// MARK: - CustomDebugStringConvertible
-//
-//extension InlineString16: CustomDebugStringConvertible {
-//    /// A debug representation of this value.
-//    public var debugDescription: String {
-//        "InlineString16(\"\(string)\")"
-//    }
-//}
+// MARK: - CustomStringConvertible
+
+extension InlineString16: CustomStringConvertible {
+    /// A textual representation of this value.
+    public var description: String {
+        string
+    }
+}
+
+// MARK: - CustomDebugStringConvertible
+
+extension InlineString16: CustomDebugStringConvertible {
+    /// A debug representation of this value.
+    public var debugDescription: String {
+        "InlineString16(\"\(string)\")"
+    }
+}
+
 //
 //// MARK: - Decodable
 //
