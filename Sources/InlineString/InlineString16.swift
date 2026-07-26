@@ -195,6 +195,14 @@ extension InlineString16: ExpressibleByStringLiteral {
     }
 }
 
+// MARK: - Equatable
+
+extension InlineString16: Equatable {
+    /// Returns a Boolean value indicating whether two inline strings contain the same UTF-8 bytes.
+    public static func == (lhs: InlineString16, rhs: InlineString16) -> Bool {
+        lhs.high == rhs.high && lhs.low == rhs.low
+    }
+}
 
 //// MARK: - CustomStringConvertible
 //
@@ -236,15 +244,6 @@ extension InlineString16: ExpressibleByStringLiteral {
 //    public func encode(to encoder: any Encoder) throws {
 //        var container = encoder.singleValueContainer()
 //        try container.encode(string)
-//    }
-//}
-//
-//// MARK: - Equatable
-//
-//extension InlineString16: Equatable {
-//    /// Returns a Boolean value indicating whether two inline strings contain the same UTF-8 bytes.
-//    public static func == (lhs: InlineString16, rhs: InlineString16) -> Bool {
-//        lhs.high == rhs.high && lhs.low == rhs.low
 //    }
 //}
 //
