@@ -39,16 +39,18 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// The number of UTF-8 bytes currently stored.
     public private(set) var count: Int {
         get {
-            let lastByte = _storage.15
+            let lastByte = _rawByte(at: Constant.lowLastByteIndex)
 
-            if lastByte < Self.capacity {
+            if lastByte < Constant.capacity {
                 return Int(lastByte)
             } else {
-                return Self.capacity
+                return Constant.capacity
             }
         }
         set {
-            if newValue < Self.capacity { _storage.15 = UInt8(newValue) }
+            if newValue < Constant.capacity {
+                _setRawByte(UInt8(newValue), at: Constant.lowLastByteIndex)
+            }
         }
     }
     
