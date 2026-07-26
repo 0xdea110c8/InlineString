@@ -172,6 +172,21 @@ public struct InlineString16: BitwiseCopyable, Sendable {
             return try body(UnsafeBufferPointer(rebasing: buffer[..<count]))
         }
     }
+    
+    // MARK: - Private methods
+    
+    func _rawByte(at index: Int) -> UInt8 {
+        precondition(index >= 0, "Index must be non-negative")
+        precondition(index < Constant.capacity, "Index must be in bounds")
+        
+        if index < Constant.wordByteCapacity {
+            let shift = (Constant.highLastByteIndex - index) * Constant.bitsPerByte
+            return UInt8(truncatingIfNeeded: high >> shift)
+        } else {
+            let shift = (Constant.lowLastByteIndex - index) * Constant.bitsPerByte
+            return UInt8(truncatingIfNeeded: low >> shift)
+        }
+    }
 }
 
 // MARK: - CustomStringConvertible
