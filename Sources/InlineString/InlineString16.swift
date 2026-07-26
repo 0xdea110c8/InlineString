@@ -59,7 +59,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// The number of UTF-8 bytes currently stored in the buffer.
     public private(set) var count: Int {
         get {
-            let lastByte = _rawByte(at: Constant.lowLastByteIndex)
+            let lastByte = UInt8(truncatingIfNeeded: low)
 
             if lastByte < Constant.capacity {
                 return Int(lastByte)
@@ -106,22 +106,22 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         low = 0
     }
     
-    /// Creates an `InlineString16`instance from a string representation.
+    /// Creates an `InlineString16`instance from a string.
     ///
-    /// - Parameter string: A string representation to store.
+    /// - Parameter string: A string to store.
     ///
     /// - Important: The UTF-8 representation of `string` must fit within the
     ///   capacity of `InlineString16`. If it does not, initialization terminates
     ///   with a fatal error. Use `canStore(_:)` to check whether initialization
     ///   can succeed before creating a value.
-    public init<StringRepresentation: StringProtocol>(_ string: StringRepresentation) {
+    public init(_ string: String) {
         self.init()
         
         var index = 0
         
         for byte in string.utf8 {
             if index < Constant.capacity {
-                _setRawByte(byte, at: index)
+                _setZeroRawByte(byte, at: index)
             } else {
                 fatalError("InlineString16 capacity exceeded")
             }
@@ -131,13 +131,12 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         count = index
     }
     
-    /// Creates an `InlineString16` instance from a string representation if it fits
-    /// within the available inline storage.
+    /// Creates an `InlineString16` instance from a string if it fits within the available inline storage.
     ///
-    /// - Parameter string: A string representation to store.
+    /// - Parameter string: A string to store.
     /// - Returns: An initialized `InlineString16` value, or `nil` if the
     ///   string does not fit within the capacity of `InlineString16`.
-    public init?<StringRepresentation: StringProtocol>(validating string: StringRepresentation) {
+    public init?(validating string: String) {
         guard Self.canStore(string) else {
             return nil
         }
@@ -181,6 +180,19 @@ public struct InlineString16: BitwiseCopyable, Sendable {
             let shift = (Constant.lowLastByteIndex - index) * Constant.bitsPerByte
             let mask = UInt64(0xFF) << shift
             low = (low & ~mask) | (UInt64(byte) << shift)
+        }
+    }
+    
+    mutating func _setZeroRawByte(_ byte: UInt8, at index: Int) {
+        precondition(index >= 0, "Index must be non-negative")
+        precondition(index < Constant.capacity, "Index must be in bounds")
+
+        if index < Constant.wordByteCapacity {
+            let shift = (Constant.highLastByteIndex - index) * Constant.bitsPerByte
+            high |= UInt64(byte) << shift
+        } else {
+            let shift = (Constant.lowLastByteIndex - index) * Constant.bitsPerByte
+            low |= UInt64(byte) << shift
         }
     }
 }
@@ -261,4 +273,3 @@ extension InlineString16: CustomDebugStringConvertible {
 //        self = value.string
 //    }
 //}
-
