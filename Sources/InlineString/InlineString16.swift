@@ -6,6 +6,13 @@
 /// Unlike `String`, the maximum size is fixed and measured in UTF-8 bytes,
 /// making `InlineString` suitable for performance-critical code
 /// where predictable memory layout and value semantics are important.
+///
+/// - Note:
+///   For values occupying the full 16-byte capacity, the last UTF-8 byte
+///   must not be in the range `0x00...0x0F`.
+///   These byte values are reserved internally to encode the string length
+///   for shorter values. Strings containing one of these bytes as the final
+///   byte cannot be represented in the 16-byte inline storage.
 public struct InlineString16: BitwiseCopyable, Sendable {
     
     // MARK: - Types
@@ -16,11 +23,31 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         case capacityExceeded
     }
     
+    // MARK: - Static properties
+    
+    private static let _capacity = 16
+    
     // MARK: - Public properties
     
     /// The maximum number of UTF-8 bytes that can be stored.
     public var capacity: Int {
-        16
+        Self._capacity
+    }
+    
+    /// The number of UTF-8 bytes currently stored.
+    public private(set) var count: Int {
+        get {
+            let lastByte = _storage.15
+
+            if lastByte < Self._capacity {
+                return Int(lastByte)
+            } else {
+                return Self._capacity
+            }
+        }
+        set {
+            if newValue < Self._capacity { _storage.15 = UInt8(newValue) }
+        }
     }
     
     /// A Boolean value indicating whether the inline string is empty.
@@ -40,9 +67,6 @@ public struct InlineString16: BitwiseCopyable, Sendable {
             return String(decoding: bytes, as: UTF8.self)
         }
     }
-    
-    /// The number of UTF-8 bytes currently stored.
-    public private(set) var count: Int
     
     // MARK: - Private properties
     
@@ -95,12 +119,15 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         let remainingCapacity = self.remainingCapacity
         let utf8 = string.utf8
         let count = utf8.count
+        
         guard count <= remainingCapacity else {
             return false
         }
+        
         withUnsafeMutableBytes(of: &_storage) {
             $0[offset..<offset + count].copyBytes(from: utf8)
         }
+        
         self.count += count
         return true
     }
@@ -115,14 +142,18 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         let remainingCapacity = self.remainingCapacity
         let utf8 = string.utf8
         let count = utf8.count
+        
         guard remainingCapacity > 0 else {
             return 0
         }
+        
         let toCopy = min(count, remainingCapacity)
         let stringToCopy = utf8.prefix(toCopy)
+        
         withUnsafeMutableBytes(of: &_storage) {
             $0[offset..<offset + toCopy].copyBytes(from: stringToCopy)
         }
+        
         self.count += toCopy
         return toCopy
     }
@@ -197,9 +228,11 @@ extension InlineString16: Equatable {
         guard lhs.count == rhs.count else {
             return false
         }
+        
         if lhs.count == 0 {
             return true
         }
+        
         return withUnsafeBytes(of: lhs._storage) { lhsBuffer in
             withUnsafeBytes(of: rhs._storage) { rhsBuffer in
                 for index in 0..<lhs.count {
@@ -235,3 +268,6 @@ extension String {
     }
 }
 
+
+#warning("ExpressibleByStringInterpolation?")
+#warning("Comparable?")
