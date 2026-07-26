@@ -21,13 +21,13 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     
     // MARK: - Static properties
     
-    private static let _capacity = 16
+    static let capacity = 16
     
     // MARK: - Public properties
     
     /// The maximum number of UTF-8 bytes that can be stored.
     public var capacity: Int {
-        Self._capacity
+        Self.capacity
     }
     
     /// The number of UTF-8 bytes currently stored.
@@ -35,14 +35,14 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         get {
             let lastByte = _storage.15
 
-            if lastByte < Self._capacity {
+            if lastByte < Self.capacity {
                 return Int(lastByte)
             } else {
-                return Self._capacity
+                return Self.capacity
             }
         }
         set {
-            if newValue < Self._capacity { _storage.15 = UInt8(newValue) }
+            if newValue < Self.capacity { _storage.15 = UInt8(newValue) }
         }
     }
     
