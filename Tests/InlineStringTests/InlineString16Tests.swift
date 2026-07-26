@@ -88,11 +88,10 @@ struct InlineString16Tests {
     @Test("init(truncating:) truncates to capacity when source is too long")
     func truncatingInitTruncatesWhenTooLong() {
         // given
-        let capacity = 16
         let inlineString = InlineString16(truncating: TestData.stringExceedsCapacity)
-        let expectedPrefixBytes = Array(TestData.stringExceedsCapacity.utf8.prefix(capacity))
+        let expectedPrefixBytes = Array(TestData.stringExceedsCapacity.utf8.prefix(InlineString16.capacity))
         // then
-        #expect(inlineString.count == capacity)
+        #expect(inlineString.count == InlineString16.capacity)
         withUnsafeBytes(of: inlineString._storage) { bytes in
             let stored = Array(bytes.prefix(inlineString.count))
             #expect(stored == expectedPrefixBytes)
@@ -124,7 +123,7 @@ struct InlineString16Tests {
         #expect(result == false)
         #expect(inlineString.count == 0)
         withUnsafeBytes(of: inlineString._storage) { bytes in
-            #expect(bytes.count == 16)
+            #expect(bytes.count == InlineString16.capacity)
             #expect(bytes.allSatisfy { $0 == 0 })
         }
     }
