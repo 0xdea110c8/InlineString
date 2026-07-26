@@ -37,9 +37,14 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     
     // MARK: - Static methods
     
-    /// Returns true if the UTF-8 representation of `string` fits within the 16-byte capacity.
-    /// - Parameter string: The source string to measure.
-    /// - Returns: `true` if `string.utf8.count` is less than or equal to 16; otherwise, `false`.
+    /// Returns a Boolean value indicating whether a string representation
+    /// can be stored in an `InlineString16` value.
+    ///
+    /// A string can be stored if its UTF-8 representation fits within the
+    /// available inline capacity.
+    ///
+    /// - Parameter string: A string representation to check.
+    /// - Returns: `true` if the string fits; otherwise, `false`.
     public static func canStore<StringRepresentation: StringProtocol>(_ string: StringRepresentation) -> Bool {
         return string.utf8.count <= Constant.capacity
     }
@@ -97,7 +102,44 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         low = 0
     }
     
-    public init
+    /// Creates an `InlineString16` from a string representation.
+    ///
+    /// - Parameter string: A string representation to store.
+    ///
+    /// - Important: The UTF-8 representation of `string` must fit within the
+    ///   capacity of `InlineString16`. If it does not, initialization terminates
+    ///   with a fatal error. Use `canStore(_:)` to check whether initialization
+    ///   can succeed before creating a value.
+    public init<StringRepresentation: StringProtocol>(_ string: StringRepresentation) {
+        self.init()
+        
+        var index = 0
+        
+        for byte in string.utf8 {
+            if index < Constant.capacity {
+                _setRawByte(byte, at: index)
+            } else {
+                fatalError("InlineString16 capacity exceeded")
+            }
+            index += 1
+        }
+        
+        count = index
+    }
+    
+    /// Creates an `InlineString16` from a string representation if it fits
+    /// within the available inline storage.
+    ///
+    /// - Parameter string: A string representation to store.
+    /// - Returns: An initialized `InlineString16` value, or `nil` if the
+    ///   string does not fit within the capacity of `InlineString16`.
+    public init?<StringRepresentation: StringProtocol>(validating string: StringRepresentation) {
+        guard Self.canStore(string) else {
+            return nil
+        }
+        
+        self.init(string)
+    }
     
     // MARK: - Private methods
     
