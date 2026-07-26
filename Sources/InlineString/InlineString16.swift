@@ -102,7 +102,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         low = 0
     }
     
-    /// Creates an `InlineString16` from a string representation.
+    /// Creates an `InlineString16`instance from a string representation.
     ///
     /// - Parameter string: A string representation to store.
     ///
@@ -127,7 +127,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         count = index
     }
     
-    /// Creates an `InlineString16` from a string representation if it fits
+    /// Creates an `InlineString16` instance from a string representation if it fits
     /// within the available inline storage.
     ///
     /// - Parameter string: A string representation to store.
@@ -181,6 +181,21 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     }
 }
 
+// MARK: - ExpressibleByStringLiteral
+
+extension InlineString16: ExpressibleByStringLiteral {
+    /// Creates an `InlineString16` instance from a string literal.
+    ///
+    /// - Important: The UTF-8 representation of `string` must fit within the
+    ///   capacity of `InlineString16`. If it does not, initialization terminates
+    ///   with a fatal error. Use `canStore(_:)` to check whether initialization
+    ///   can succeed before creating a value.
+    public init(stringLiteral value: StringLiteralType) {
+        self.init(value)
+    }
+}
+
+
 //// MARK: - CustomStringConvertible
 //
 //extension InlineString16: CustomStringConvertible {
@@ -230,18 +245,6 @@ public struct InlineString16: BitwiseCopyable, Sendable {
 //    /// Returns a Boolean value indicating whether two inline strings contain the same UTF-8 bytes.
 //    public static func == (lhs: InlineString16, rhs: InlineString16) -> Bool {
 //        lhs.high == rhs.high && lhs.low == rhs.low
-//    }
-//}
-//
-//// MARK: - ExpressibleByStringLiteral
-//
-//extension InlineString16: ExpressibleByStringLiteral {
-//    /// Creates an `InlineString16` from a string literal.
-//    /// - Parameter value: The string literal.
-//    /// - Note: Truncation occurs at UTF-8 byte boundaries (not character/scalar boundaries).
-//    ///         If `string` exceeds `capacity` in UTF-8 bytes, only the first `capacity` bytes are stored.
-//    public init(stringLiteral value: StringLiteralType) {
-//        self.init(truncating: value)
 //    }
 //}
 //
