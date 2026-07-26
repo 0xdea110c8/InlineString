@@ -1,13 +1,9 @@
-/// A fixed-capacity UTF-8 string stored entirely inline.
+/// A 16-byte, fixed-capacity UTF-8 string stored entirely inline.
 ///
-/// `InlineString` stores UTF-8 bytes directly within the value without heap allocation.
-///  The capacity is specified at compile time using a const generic parameter.
+/// `InlineString16` keeps its UTF-8 bytes directly within the value without heap allocation,
+/// providing a predictable memory layout and value semantics for performance‑critical code.
 ///
-/// Unlike `String`, the maximum size is fixed and measured in UTF-8 bytes,
-/// making `InlineString` suitable for performance-critical code
-/// where predictable memory layout and value semantics are important.
-///
-/// - Note:
+/// - Important:
 ///   For values occupying the full 16-byte capacity, the last UTF-8 byte
 ///   must not be in the range `0x00...0x0F`.
 ///   These byte values are reserved internally to encode the string length
@@ -80,13 +76,13 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     
     // MARK: - Initializers
     
-    /// Creates an empty `InlineString`.
+    /// Creates an empty `InlineString16`.
     init() {
         _storage = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         count = 0
     }
     
-    /// Creates an `InlineString` by copying UTF-8 bytes from `string`,
+    /// Creates an `InlineString16` by copying UTF-8 bytes from `string`,
     /// truncating the input to the fixed `capacity` if necessary.
     /// - Parameter string: The source string to copy into the inline storage.
     /// - Note: Truncation occurs at UTF-8 byte boundaries (not character/scalar boundaries).
@@ -96,7 +92,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         append(truncating: string)
     }
     
-    /// Creates an `InlineString` from a decoded string.
+    /// Creates an `InlineString16` from a decoded string.
     /// - Parameter value: The decoded string.
     /// - Throws: ``InlineStringError/capacityExceeded``
     ///           if the UTF-8 representation exceeds ``capacity`` bytes.
@@ -249,7 +245,7 @@ extension InlineString16: Equatable {
 // MARK: - ExpressibleByStringLiteral
 
 extension InlineString16: ExpressibleByStringLiteral {
-    /// Creates an `InlineString` from a string literal.
+    /// Creates an `InlineString16` from a string literal.
     /// - Parameter value: The string literal.
     /// - Note: Truncation occurs at UTF-8 byte boundaries (not character/scalar boundaries).
     ///         If `string` exceeds `capacity` in UTF-8 bytes, only the first `capacity` bytes are stored.
@@ -261,13 +257,9 @@ extension InlineString16: ExpressibleByStringLiteral {
 // MARK: - String + InlineString
 
 extension String {
-    /// Creates a `String` from an `InlineString`.
+    /// Creates a `String` from an `InlineString16`.
     /// - Parameter value: The inline string to convert.
     public init(_ value: InlineString16) {
         self = value.string
     }
 }
-
-
-#warning("ExpressibleByStringInterpolation?")
-#warning("Comparable?")
