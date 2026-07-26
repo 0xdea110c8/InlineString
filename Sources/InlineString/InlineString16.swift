@@ -19,15 +19,21 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         case capacityExceeded
     }
     
-    // MARK: - Static properties
+    // MARK: - Constants
     
-    static let capacity = 16
+    enum Constant {
+        static let capacity = 16
+        static let bitsPerByte = 8
+        static let wordByteCapacity = 8
+        static let highLastByteIndex = wordByteCapacity - 1
+        static let lowLastByteIndex = capacity - 1
+    }
     
     // MARK: - Public properties
     
     /// The maximum number of UTF-8 bytes that can be stored.
     public var capacity: Int {
-        Self.capacity
+        Constant.capacity
     }
     
     /// The number of UTF-8 bytes currently stored.
