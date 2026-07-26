@@ -66,13 +66,8 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     
     // MARK: - Private properties
     
-    /// Inline storage for UTF-8 bytes.
-    private(set) var _storage: (
-        UInt8, UInt8, UInt8, UInt8,
-        UInt8, UInt8, UInt8, UInt8,
-        UInt8, UInt8, UInt8, UInt8,
-        UInt8, UInt8, UInt8, UInt8
-    )
+    private var low: UInt64
+    private var high: UInt64
     
     // MARK: - Initializers
     
