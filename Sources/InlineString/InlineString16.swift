@@ -40,7 +40,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// Returns true if the UTF-8 representation of `string` fits within the 16-byte capacity.
     /// - Parameter string: The source string to measure.
     /// - Returns: `true` if `string.utf8.count` is less than or equal to 16; otherwise, `false`.
-    public static func canStore<S: StringProtocol>(_ string: S) -> Bool {
+    public static func canStore<StringRepresentation: StringProtocol>(_ string: StringRepresentation) -> Bool {
         return string.utf8.count <= Constant.capacity
     }
     
@@ -96,6 +96,8 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         high = 0
         low = 0
     }
+    
+    public init
     
     // MARK: - Private methods
     
