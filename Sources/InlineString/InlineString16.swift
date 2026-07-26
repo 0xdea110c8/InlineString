@@ -13,8 +13,8 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     
     // MARK: - Types
     
-    /// Errors thrown by `InlineString`.
-    public enum InlineStringError: Error {
+    /// Errors thrown by `InlineString16`.
+    public enum InlineString16Error: Error {
         /// The UTF-8 representation of a string exceeds the inline capacity.
         case capacityExceeded
     }
@@ -94,12 +94,12 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     
     /// Creates an `InlineString16` from a decoded string.
     /// - Parameter value: The decoded string.
-    /// - Throws: ``InlineStringError/capacityExceeded``
+    /// - Throws: ``InlineString16Error/capacityExceeded``
     ///           if the UTF-8 representation exceeds ``capacity`` bytes.
     init(decoding value: String) throws {
         self.init()
         guard append(value) else {
-            throw InlineStringError.capacityExceeded
+            throw InlineString16Error.capacityExceeded
         }
     }
     
