@@ -59,11 +59,6 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         count == 0
     }
     
-    /// The number of remaining UTF-8 bytes available for writing.
-    public var remainingCapacity: Int {
-        Constant.capacity - count
-    }
-    
     /// The contents of the inline storage as a `String`.
 //    public var string: String {
 //        withUnsafeBytes(of: _storage) { buffer in
