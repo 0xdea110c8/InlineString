@@ -19,10 +19,10 @@ let stringValues: [String] = [
 
 
 let equalityArrayBenchmarks = BenchmarkSuite(
-    name: "Equality array"
+    name: "equality-array"
 ) { suite in
 
-    suite.benchmark("InlineString16 search") {
+    suite.benchmark("inline-string-search") {
         var found = false
 
         for _ in 0..<1_000_000 {
@@ -37,7 +37,7 @@ let equalityArrayBenchmarks = BenchmarkSuite(
     }
 
 
-    suite.benchmark("String search") {
+    suite.benchmark("string-search") {
         var found = false
 
         for _ in 0..<1_000_000 {

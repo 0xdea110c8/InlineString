@@ -4,14 +4,14 @@ import InlineString
 nonisolated(unsafe) var sourceString = "Berlin"
 
 let initBenchmarks = BenchmarkSuite(name: "Init") { suite in
-    suite.benchmark("InlineString16 truncating") {
+    suite.benchmark("inline-string-truncating") {
         for _ in 0..<1_000_000 {
-            let value: InlineString16 = "Berlin"
+            let value = InlineString16(truncating: sourceString)
             consumeInline(value)
         }
     }
 
-    suite.benchmark("String copy") {
+    suite.benchmark("string-copy") {
         for _ in 0..<1_000_000 {
             let value = String(sourceString)
             consumeString(value)

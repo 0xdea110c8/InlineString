@@ -11,8 +11,8 @@ nonisolated(unsafe) var stringArray: [String] = Array(
     count: 1_000_000
 )
 
-let arrayBenchmarks = BenchmarkSuite(name: "Array traversal") { suite in
-    suite.benchmark("InlineString16 iterate") {
+let arrayBenchmarks = BenchmarkSuite(name: "array-traversal") { suite in
+    suite.benchmark("inline-string-iterate") {
         var result = 0
 
         for value in inlineArray {
@@ -20,7 +20,7 @@ let arrayBenchmarks = BenchmarkSuite(name: "Array traversal") { suite in
         }
     }
 
-    suite.benchmark("String iterate") {
+    suite.benchmark("string-iterate") {
         var result = 0
 
         for value in stringArray {
@@ -28,7 +28,7 @@ let arrayBenchmarks = BenchmarkSuite(name: "Array traversal") { suite in
         }
     }
     
-    suite.benchmark("InlineString16 count") {
+    suite.benchmark("inline-string-count") {
         var result = 0
         
         for value in inlineArray {
@@ -38,7 +38,7 @@ let arrayBenchmarks = BenchmarkSuite(name: "Array traversal") { suite in
         consumeInt(result)
     }
     
-    suite.benchmark("String UTF8 count") {
+    suite.benchmark("string-count") {
         var result = 0
         
         for value in stringArray {

@@ -11,7 +11,7 @@ let suites = [
     countAccessBenchmarks,
     arrayBenchmarks,
     equalityBenchmarks,
-    equalityArrayBenchmarks
+    equalityArrayBenchmarks,
     initBenchmarks,
     appendBenchmarks
 ]

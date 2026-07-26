@@ -4,8 +4,8 @@ import InlineString
 nonisolated(unsafe) var inlineValue: InlineString16 = "Berlin"
 nonisolated(unsafe) var stringValue = "Berlin"
 
-let countAccessBenchmarks = BenchmarkSuite(name: "Access-x1_000_000") { suite in
-    suite.benchmark("InlineString16-count") {
+let countAccessBenchmarks = BenchmarkSuite(name: "access") { suite in
+    suite.benchmark("inline-string-count") {
         var count = 0
         for _ in 0..<1000000 {
             count += inlineValue.count
@@ -14,7 +14,7 @@ let countAccessBenchmarks = BenchmarkSuite(name: "Access-x1_000_000") { suite in
         
     }
 
-    suite.benchmark("String-UTF8-count") {
+    suite.benchmark("string-count") {
         var count = 0
         for _ in 0..<1000000 {
             count += stringValue.utf8.count
