@@ -4,12 +4,12 @@ import Testing
 
 struct InlineString16Tests {
     
-    @Test("capacity equals 16")
+    @Test("capacity matches type constant")
     func capacityEqualsGenericParameter() {
         // given
         let inlineString = InlineString16()
         // then
-        #expect(inlineString.capacity == 16)
+        #expect(inlineString.capacity == InlineString16.capacity)
     }
     
     @Test("count uses the last byte as metadata below capacity")
@@ -251,7 +251,7 @@ struct InlineString16Tests {
         // when
         do {
             _ = try JSONDecoder().decode(InlineString16.self, from: dataExceedsCapacity)
-        } catch _ as InlineString16.InlineStringError {
+        } catch _ as InlineString16.InlineString16Error {
             // then
             #expect(true)
         }
