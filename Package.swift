@@ -14,6 +14,12 @@ let package = Package(
             targets: ["InlineString"]
         ),
     ],
+    dependencies: [
+        .package(
+            url: "https://github.com/google/swift-benchmark.git",
+            from: "0.1.0"
+        )
+    ],
     targets: [
         .target(
             name: "InlineString"
@@ -21,6 +27,16 @@ let package = Package(
         .testTarget(
             name: "InlineStringTests",
             dependencies: ["InlineString"]
+        ),
+        .executableTarget(
+            name: "InlineStringBenchmarks",
+            dependencies: [
+                "InlineString",
+                .product(
+                    name: "Benchmark",
+                    package: "swift-benchmark"
+                )
+            ]
         ),
     ]
 )
