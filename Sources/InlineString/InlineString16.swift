@@ -21,22 +21,37 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     
     // MARK: - Constants
     
+    /// Internal constants
     enum Constant {
+        /// Total number of UTF-8 bytes the inline buffer can hold.
         static let capacity = 16
+        /// Number of bits in a single byte; used for shift calculations.
         static let bitsPerByte = 8
+        /// Number of bytes in a 64-bit word (UInt64).
         static let wordByteCapacity = 8
+        /// Index of the last addressable byte within the high 64-bit word.
         static let highLastByteIndex = wordByteCapacity - 1
+        /// Index of the last addressable byte within the combined 16-byte storage.
         static let lowLastByteIndex = capacity - 1
+    }
+    
+    // MARK: - Static methods
+    
+    /// Returns true if the UTF-8 representation of `string` fits within the 16-byte capacity.
+    /// - Parameter string: The source string to measure.
+    /// - Returns: `true` if `string.utf8.count` is less than or equal to 16; otherwise, `false`.
+    public static func canStore<S: StringProtocol>(_ string: S) -> Bool {
+        return string.utf8.count <= Constant.capacity
     }
     
     // MARK: - Public properties
     
-    /// The maximum number of UTF-8 bytes that can be stored.
+    /// The maximum number of UTF-8 bytes this instance can store.
     public var capacity: Int {
         Constant.capacity
     }
     
-    /// The number of UTF-8 bytes currently stored.
+    /// The number of UTF-8 bytes currently stored in the buffer.
     public private(set) var count: Int {
         get {
             let lastByte = _rawByte(at: Constant.lowLastByteIndex)
@@ -54,12 +69,12 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         }
     }
     
-    /// A Boolean value indicating whether the inline string is empty.
+    /// A Boolean value indicating whether the inline string contains zero bytes.
     public var isEmpty: Bool {
         count == 0
     }
     
-    /// The contents of the inline storage as a `String`.
+    /// The contents of the inline storage as a `String` decoded from UTF-8.
 //    public var string: String {
 //        withUnsafeBytes(of: _storage) { buffer in
 //            let bytes = buffer.prefix(count)
@@ -69,12 +84,14 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     
     // MARK: - Private properties
     
+    /// The upper 8 bytes of the 16-byte inline storage.
     var high: UInt64
+    /// The lower 8 bytes of the 16-byte inline storage.
     var low: UInt64
     
     // MARK: - Initializers
     
-    /// Creates an empty `InlineString16`.
+    /// Creates an empty InlineString16 with zeroed storage.
     public init() {
         high = 0
         low = 0
@@ -82,6 +99,10 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     
     // MARK: - Private methods
     
+    /// Reads a raw byte from the inline storage without interpreting string semantics.
+    /// - Parameter index: A zero-based index into the 16-byte buffer.
+    /// - Returns: The byte value at the specified index.
+    /// - Precondition: `index` must be within 0..<16.
     func _rawByte(at index: Int) -> UInt8 {
         precondition(index >= 0, "Index must be non-negative")
         precondition(index < Constant.capacity, "Index must be in bounds")
@@ -95,6 +116,11 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         }
     }
     
+    /// Writes a raw byte into the inline storage without interpreting string semantics.
+    /// - Parameters:
+    ///   - byte: The byte value to write.
+    ///   - index: A zero-based index into the 16-byte buffer.
+    /// - Precondition: `index` must be within 0..<16.
     mutating func _setRawByte(_ byte: UInt8, at index: Int) {
         precondition(index >= 0, "Index must be non-negative")
         precondition(index < Constant.capacity, "Index must be in bounds")
@@ -184,3 +210,4 @@ public struct InlineString16: BitwiseCopyable, Sendable {
 //        self = value.string
 //    }
 //}
+
