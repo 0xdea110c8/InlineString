@@ -12,6 +12,23 @@ struct InlineString16Tests {
         #expect(inlineString.capacity == 16)
     }
     
+    @Test("count uses the last byte as metadata below capacity")
+    func countReturnsLastByteForDataSmallerThanCapacity() {
+        // given
+        let inlineString = InlineString16(truncating: TestData.string)
+        // then
+        #expect(inlineString.count == inlineString._storage.15)
+    }
+    
+    @Test("count uses capacity when storage is fully occupied")
+    func countReturnsCapacityForExactCapacity() {
+        // given
+        let inlineString = InlineString16(truncating: TestData.stringFitsCapacity)
+        // then
+        #expect(inlineString.count == inlineString.capacity)
+        #expect(inlineString._storage.15 == TestData.stringFitsCapacity.utf8.last)
+    }
+    
     @Test("isEmpty reflects whether the count is zero")
     func isEmptyReflectsCountIsZero() {
         // given
