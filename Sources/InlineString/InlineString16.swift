@@ -104,26 +104,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     public init(_ string: String) {
         self.init()
 
-        guard !string.isEmpty else { return }
-        
-        let utf8 = string.utf8
-        let utf8Count = utf8.count
-        var storage = (high, low)
-
-        withUnsafeBytes(of: utf8) { stringBuffer in
-            guard utf8Count <= Constant.capacity else {
-                fatalError("InlineString16 capacity exceeded")
-            }
-
-            withUnsafeMutableBytes(of: &storage) { storageBuffer in
-                let destination = UnsafeMutableRawBufferPointer(rebasing: storageBuffer[..<utf8Count])
-                destination.copyMemory(from: UnsafeRawBufferPointer(rebasing: stringBuffer[..<utf8Count]))
-            }
-
-            high = storage.0.bigEndian
-            low = storage.1.bigEndian
-            count = utf8Count
-        }
+        _initialize(from: string, validating: false)
     }
     
     /// Creates an `InlineString16` instance from a string if it fits within the available inline storage.
@@ -132,16 +113,11 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// - Returns: An initialized `InlineString16` value, or `nil` if the
     ///   string does not fit within the capacity of `InlineString16`.
     public init?(validating string: String) {
-        guard !string.isEmpty else {
-            self.init()
-            return
-        }
-        
-        guard Self.canStore(string) else {
+        self.init()
+
+        guard _initialize(from: string, validating: true) else {
             return nil
         }
-        
-        self.init(string)
     }
     
     /// Provides temporary access to the stored UTF-8 bytes.
@@ -157,6 +133,40 @@ public struct InlineString16: BitwiseCopyable, Sendable {
             let buffer = rawBuffer.bindMemory(to: UInt8.self)
             return try body(UnsafeBufferPointer(rebasing: buffer[..<self.count]))
         }
+    }
+    
+    // MARK: - Private methods
+    
+    @discardableResult
+    mutating func _initialize(from string: String, validating: Bool) -> Bool {
+        guard !string.isEmpty else {
+            return true
+        }
+        
+        let utf8 = string.utf8
+        let utf8Count = utf8.count
+        
+        guard utf8Count <= Constant.capacity else {
+            if validating {
+                return false
+            } else {
+                fatalError("InlineString16 capacity exceeded")
+            }
+        }
+        
+        var storage = (high, low)
+
+        withUnsafeBytes(of: utf8) { stringBuffer in
+            withUnsafeMutableBytes(of: &storage) { storageBuffer in
+                let destination = UnsafeMutableRawBufferPointer(rebasing: storageBuffer[..<utf8Count])
+                destination.copyMemory(from: UnsafeRawBufferPointer(rebasing: stringBuffer[..<utf8Count]))
+            }
+
+            high = storage.0.bigEndian
+            low = storage.1.bigEndian
+            count = utf8Count
+        }
+        return true
     }
 }
 
