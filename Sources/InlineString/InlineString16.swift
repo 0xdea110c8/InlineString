@@ -145,32 +145,31 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         
         let utf8 = string.utf8
         let utf8Count = utf8.count
+        var storage: (UInt64, UInt64) = (0, 0)
         
-        guard utf8Count <= Constant.capacity else {
-            if validating {
-                return false
-            } else {
-                fatalError("InlineString16 capacity exceeded")
-            }
-        }
-        
-        var storage = (high, low)
-
-        if utf8Count < Constant.capacity {
+        switch utf8Count {
+        case 0..<Constant.capacity:
             withUnsafeBytes(of: utf8) { stringBuffer in
                 withUnsafeMutableBytes(of: &storage) { storageBuffer in
                     let destination = UnsafeMutableRawBufferPointer(rebasing: storageBuffer[..<utf8Count])
                     destination.copyMemory(from: UnsafeRawBufferPointer(rebasing: stringBuffer[..<utf8Count]))
                 }
             }
-        } else {
+        case Constant.capacity:
             var string = string
-            string.makeContiguousUTF8()
             
             string.withUTF8 { stringBuffer in
                 withUnsafeMutableBytes(of: &storage) { storageBuffer in
                     storageBuffer.copyMemory(from: UnsafeRawBufferPointer(stringBuffer))
                 }
+            }
+        default:
+            guard utf8Count <= Constant.capacity else {
+                if validating {
+                    return false
+                }
+                
+                fatalError("InlineString16 capacity exceeded")
             }
         }
         
