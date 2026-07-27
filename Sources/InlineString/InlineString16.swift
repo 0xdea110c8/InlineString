@@ -156,10 +156,21 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         
         var storage = (high, low)
 
-        withUnsafeBytes(of: utf8) { stringBuffer in
-            withUnsafeMutableBytes(of: &storage) { storageBuffer in
-                let destination = UnsafeMutableRawBufferPointer(rebasing: storageBuffer[..<utf8Count])
-                destination.copyMemory(from: UnsafeRawBufferPointer(rebasing: stringBuffer[..<utf8Count]))
+        if utf8Count < Constant.capacity {
+            withUnsafeBytes(of: utf8) { stringBuffer in
+                withUnsafeMutableBytes(of: &storage) { storageBuffer in
+                    let destination = UnsafeMutableRawBufferPointer(rebasing: storageBuffer[..<utf8Count])
+                    destination.copyMemory(from: UnsafeRawBufferPointer(rebasing: stringBuffer[..<utf8Count]))
+                }
+            }
+        } else {
+            var string = string
+            string.makeContiguousUTF8()
+            
+            string.withUTF8 { stringBuffer in
+                withUnsafeMutableBytes(of: &storage) { storageBuffer in
+                    storageBuffer.copyMemory(from: UnsafeRawBufferPointer(stringBuffer))
+                }
             }
         }
         
