@@ -125,7 +125,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
 
             withUnsafeMutableBytes(of: &storage) { storageBuffer in
                 let destination = UnsafeMutableRawBufferPointer(rebasing: storageBuffer[..<utf8Count])
-                destination.copyMemory(from: UnsafeRawBufferPointer(stringBuffer))
+                destination.copyMemory(from: UnsafeRawBufferPointer(rebasing: stringBuffer[..<utf8Count]))
             }
 
             high = storage.0.bigEndian
