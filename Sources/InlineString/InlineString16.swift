@@ -61,7 +61,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         }
         set {
             if newValue < Constant.capacity {
-                _setZeroRawByte(UInt8(newValue), at: Constant.lowLastByteIndex)
+                low |= UInt64(newValue) << 0
             }
         }
     }
@@ -156,26 +156,6 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         return try withUnsafeBytes(of: storage) { rawBuffer in
             let buffer = rawBuffer.bindMemory(to: UInt8.self)
             return try body(UnsafeBufferPointer(rebasing: buffer[..<self.count]))
-        }
-    }
-    
-    // MARK: - Private methods
-    
-    /// Writes a raw byte into the inline storage without interpreting string semantics.
-    /// - Parameters:
-    ///   - byte: The byte value to write.
-    ///   - index: A zero-based index into the 16-byte buffer.
-    /// - Precondition: `index` must be within 0..<16.
-    mutating func _setZeroRawByte(_ byte: UInt8, at index: Int) {
-        precondition(index >= 0, "Index must be non-negative")
-        precondition(index < Constant.capacity, "Index must be in bounds")
-
-        if index < Constant.wordByteCapacity {
-            let shift = (Constant.highLastByteIndex - index) * Constant.bitsPerByte
-            high |= UInt64(byte) << shift
-        } else {
-            let shift = (Constant.lowLastByteIndex - index) * Constant.bitsPerByte
-            low |= UInt64(byte) << shift
         }
     }
 }
