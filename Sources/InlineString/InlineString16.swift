@@ -149,28 +149,11 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         
         switch utf8Count {
         case 0..<Constant.capacity:
-            withUnsafeBytes(of: utf8) { stringBuffer in
-                withUnsafeMutableBytes(of: &storage) { storageBuffer in
-                    let destination = UnsafeMutableRawBufferPointer(rebasing: storageBuffer[..<utf8Count])
-                    destination.copyMemory(from: UnsafeRawBufferPointer(rebasing: stringBuffer[..<utf8Count]))
-                }
-            }
+            _copyUTF8Bytes(from: utf8, to: &storage)
         case Constant.capacity:
-            var string = string
-            
-            string.withUTF8 { stringBuffer in
-                withUnsafeMutableBytes(of: &storage) { storageBuffer in
-                    storageBuffer.copyMemory(from: UnsafeRawBufferPointer(stringBuffer))
-                }
-            }
+            _copyStringContent(from: string, to: &storage)
         default:
-            guard utf8Count <= Constant.capacity else {
-                if validating {
-                    return false
-                }
-                
-                fatalError("InlineString16 capacity exceeded")
-            }
+            return _onExceedingCapacity(validating: validating)
         }
         
         high = storage.0.bigEndian
@@ -178,6 +161,33 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         count = utf8Count
         
         return true
+    }
+    
+    mutating func _copyUTF8Bytes(from utf8: String.UTF8View, to storage: inout (UInt64, UInt64)) {
+        withUnsafeBytes(of: utf8) { stringBuffer in
+            withUnsafeMutableBytes(of: &storage) { storageBuffer in
+                let destination = UnsafeMutableRawBufferPointer(rebasing: storageBuffer[..<utf8.count])
+                destination.copyMemory(from: UnsafeRawBufferPointer(rebasing: stringBuffer[..<utf8.count]))
+            }
+        }
+    }
+    
+    mutating func _copyStringContent(from string: String, to storage: inout (UInt64, UInt64)) {
+        var string = string
+        
+        string.withUTF8 { stringBuffer in
+            withUnsafeMutableBytes(of: &storage) { storageBuffer in
+                storageBuffer.copyMemory(from: UnsafeRawBufferPointer(stringBuffer))
+            }
+        }
+    }
+    
+    func _onExceedingCapacity(validating: Bool) -> Bool {
+        if validating {
+            return false
+        }
+        
+        fatalError("InlineString16 capacity exceeded")
     }
 }
 
