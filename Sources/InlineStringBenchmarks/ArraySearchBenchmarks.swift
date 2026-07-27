@@ -1,7 +1,7 @@
 @preconcurrency import Benchmark
 import InlineString
 
-let inlineValues: [InlineString16] = [
+fileprivate nonisolated(unsafe) var inlineValues: [InlineString16] = [
     "Berlin",
     "London",
     "Tokyo",
@@ -9,7 +9,7 @@ let inlineValues: [InlineString16] = [
     "Moscow"
 ]
 
-let stringValues: [String] = [
+fileprivate nonisolated(unsafe) var stringValues: [String] = [
     "Berlin",
     "London",
     "Tokyo",
@@ -18,15 +18,12 @@ let stringValues: [String] = [
 ]
 
 
-let equalityArrayBenchmarks = BenchmarkSuite(
-    name: "equality-array"
-) { suite in
-
-    suite.benchmark("inline-string-search") {
+let arraySearchComparison = BenchmarkSuite(name: "array-search") { suite in
+    suite.benchmark("string") {
         var found = false
 
         for _ in 0..<1_000_000 {
-            for value in inlineValues {
+            for value in stringValues {
                 if value == "Tokyo" {
                     found = true
                 }
@@ -36,12 +33,11 @@ let equalityArrayBenchmarks = BenchmarkSuite(
         consumeBool(found)
     }
 
-
-    suite.benchmark("string-search") {
+    suite.benchmark("inline-string") {
         var found = false
 
         for _ in 0..<1_000_000 {
-            for value in stringValues {
+            for value in inlineValues {
                 if value == "Tokyo" {
                     found = true
                 }
