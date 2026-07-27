@@ -7,6 +7,13 @@ fileprivate nonisolated(unsafe) var sourceString = "Berlin"
 let initEmptyComparison = BenchmarkSuite(name: "init-empty") { suite in
     suite.benchmark("string") {
         for _ in 0..<1_000_000 {
+            let value = String()
+            consumeString(value)
+        }
+    }
+    
+    suite.benchmark("string-string-literal") {
+        for _ in 0..<1_000_000 {
             let value = ""
             consumeString(value)
         }
@@ -35,6 +42,13 @@ let initEmptyComparison = BenchmarkSuite(name: "init-empty") { suite in
 }
 
 let initComparison = BenchmarkSuite(name: "init") { suite in
+    suite.benchmark("string") {
+        for _ in 0..<1_000_000 {
+            let value = sourceString
+            consumeString(value)
+        }
+    }
+    
     suite.benchmark("string-copy") {
         for _ in 0..<1_000_000 {
             let value = String(sourceString)

@@ -11,14 +11,6 @@
 ///   byte cannot be represented in the 16-byte inline storage.
 public struct InlineString16: BitwiseCopyable, Sendable {
     
-    // MARK: - Types
-    
-    /// Errors thrown by `InlineString16`.
-    //    public enum InlineString16Error: Error {
-    //        /// The UTF-8 representation of a string exceeds the inline capacity.
-    //        case capacityExceeded
-    //    }
-    
     // MARK: - Constants
     
     /// Internal constants
@@ -69,7 +61,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         }
         set {
             if newValue < Constant.capacity {
-                _setZeroRawByte(UInt8(newValue), at: Constant.lowLastByteIndex)
+                low |= UInt64(newValue) << 0
             }
         }
     }
@@ -111,19 +103,8 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     ///   can succeed before creating a value.
     public init(_ string: String) {
         self.init()
-        
-        var index = 0
-        
-        for byte in string.utf8 {
-            if index < Constant.capacity {
-                _setZeroRawByte(byte, at: index)
-            } else {
-                fatalError("InlineString16 capacity exceeded")
-            }
-            index += 1
-        }
-        
-        count = index
+
+        _initialize(from: string, validating: false)
     }
     
     /// Creates an `InlineString16` instance from a string if it fits within the available inline storage.
@@ -132,11 +113,11 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// - Returns: An initialized `InlineString16` value, or `nil` if the
     ///   string does not fit within the capacity of `InlineString16`.
     public init?(validating string: String) {
-        guard Self.canStore(string) else {
+        self.init()
+
+        guard _initialize(from: string, validating: true) else {
             return nil
         }
-        
-        self.init(string)
     }
     
     /// Provides temporary access to the stored UTF-8 bytes.
@@ -156,54 +137,37 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     
     // MARK: - Private methods
     
-    /// Reads a raw byte from the inline storage without interpreting string semantics.
-    /// - Parameter index: A zero-based index into the 16-byte buffer.
-    /// - Returns: The byte value at the specified index.
-    /// - Precondition: `index` must be within 0..<16.
-    func _rawByte(at index: Int) -> UInt8 {
-        precondition(index >= 0, "Index must be non-negative")
-        precondition(index < Constant.capacity, "Index must be in bounds")
+    @discardableResult
+    mutating func _initialize(from string: String, validating: Bool) -> Bool {
+        guard !string.isEmpty else {
+            return true
+        }
         
-        if index < Constant.wordByteCapacity {
-            let shift = (Constant.highLastByteIndex - index) * Constant.bitsPerByte
-            return UInt8(truncatingIfNeeded: high >> shift)
-        } else {
-            let shift = (Constant.lowLastByteIndex - index) * Constant.bitsPerByte
-            return UInt8(truncatingIfNeeded: low >> shift)
+        let utf8 = string.utf8
+        let utf8Count = utf8.count
+        
+        guard utf8Count <= Constant.capacity else {
+            if validating {
+                return false
+            } else {
+                fatalError("InlineString16 capacity exceeded")
+            }
         }
-    }
-    
-    /// Writes a raw byte into the inline storage without interpreting string semantics.
-    /// - Parameters:
-    ///   - byte: The byte value to write.
-    ///   - index: A zero-based index into the 16-byte buffer.
-    /// - Precondition: `index` must be within 0..<16.
-    mutating func _setRawByte(_ byte: UInt8, at index: Int) {
-        precondition(index >= 0, "Index must be non-negative")
-        precondition(index < Constant.capacity, "Index must be in bounds")
+        
+        var storage = (high, low)
 
-        if index < Constant.wordByteCapacity {
-            let shift = (Constant.highLastByteIndex - index) * Constant.bitsPerByte
-            let mask = UInt64(0xFF) << shift
-            high = (high & ~mask) | (UInt64(byte) << shift)
-        } else {
-            let shift = (Constant.lowLastByteIndex - index) * Constant.bitsPerByte
-            let mask = UInt64(0xFF) << shift
-            low = (low & ~mask) | (UInt64(byte) << shift)
+        withUnsafeBytes(of: utf8) { stringBuffer in
+            withUnsafeMutableBytes(of: &storage) { storageBuffer in
+                let destination = UnsafeMutableRawBufferPointer(rebasing: storageBuffer[..<utf8Count])
+                destination.copyMemory(from: UnsafeRawBufferPointer(rebasing: stringBuffer[..<utf8Count]))
+            }
         }
-    }
-    
-    mutating func _setZeroRawByte(_ byte: UInt8, at index: Int) {
-        precondition(index >= 0, "Index must be non-negative")
-        precondition(index < Constant.capacity, "Index must be in bounds")
-
-        if index < Constant.wordByteCapacity {
-            let shift = (Constant.highLastByteIndex - index) * Constant.bitsPerByte
-            high |= UInt64(byte) << shift
-        } else {
-            let shift = (Constant.lowLastByteIndex - index) * Constant.bitsPerByte
-            low |= UInt64(byte) << shift
-        }
+        
+        high = storage.0.bigEndian
+        low = storage.1.bigEndian
+        count = utf8Count
+        
+        return true
     }
 }
 
