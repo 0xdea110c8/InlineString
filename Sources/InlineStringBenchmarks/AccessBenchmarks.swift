@@ -19,6 +19,21 @@ let accessCountComparison = BenchmarkSuite(name: "access-count") { suite in
             count += inlineValue.count
             consumeInt(count)
         }
-        
+    }
+}
+
+let accessStringComparison = BenchmarkSuite(name: "access-string") { suite in
+    suite.benchmark("string") {
+        for _ in 0..<1000000 {
+            let value = stringValue
+            consumeString(value)
+        }
+    }
+    
+    suite.benchmark("inline-string") {
+        for _ in 0..<1000000 {
+            let value = inlineValue.string
+            consumeString(value)
+        }
     }
 }

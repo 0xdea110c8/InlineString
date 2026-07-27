@@ -14,10 +14,10 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     // MARK: - Types
     
     /// Errors thrown by `InlineString16`.
-//    public enum InlineString16Error: Error {
-//        /// The UTF-8 representation of a string exceeds the inline capacity.
-//        case capacityExceeded
-//    }
+    //    public enum InlineString16Error: Error {
+    //        /// The UTF-8 representation of a string exceeds the inline capacity.
+    //        case capacityExceeded
+    //    }
     
     // MARK: - Constants
     
@@ -60,7 +60,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     public private(set) var count: Int {
         get {
             let lastByte = UInt8(truncatingIfNeeded: low)
-
+            
             if lastByte < Constant.capacity {
                 return Int(lastByte)
             } else {
@@ -81,14 +81,9 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     
     /// The contents of the inline storage as a `String` decoded from UTF-8.
     public var string: String {
-        var bytes: [UInt8] = []
-        bytes.reserveCapacity(count)
-
-        for index in 0..<count {
-            bytes.append(_rawByte(at: index))
+        withUnsafeUTF8Bytes {
+            String(decoding: $0, as: UTF8.self)
         }
-
-        return String(decoding: bytes, as: UTF8.self)
     }
     
     // MARK: - Private properties
@@ -142,6 +137,15 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         }
         
         self.init(string)
+    }
+    
+    public func withUnsafeUTF8Bytes<R>(_ body: (UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R {
+        let storage = (high.bigEndian, low.bigEndian)
+        
+        return try withUnsafeBytes(of: storage) { rawBuffer in
+            let buffer = rawBuffer.bindMemory(to: UInt8.self)
+            return try body(UnsafeBufferPointer(rebasing: buffer[..<self.count]))
+        }
     }
     
     // MARK: - Private methods
