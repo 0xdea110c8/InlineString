@@ -169,43 +169,11 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     
     // MARK: - Private methods
     
-    /// Reads a raw byte from the inline storage without interpreting string semantics.
-    /// - Parameter index: A zero-based index into the 16-byte buffer.
-    /// - Returns: The byte value at the specified index.
-    /// - Precondition: `index` must be within 0..<16.
-    func _rawByte(at index: Int) -> UInt8 {
-        precondition(index >= 0, "Index must be non-negative")
-        precondition(index < Constant.capacity, "Index must be in bounds")
-        
-        if index < Constant.wordByteCapacity {
-            let shift = (Constant.highLastByteIndex - index) * Constant.bitsPerByte
-            return UInt8(truncatingIfNeeded: high >> shift)
-        } else {
-            let shift = (Constant.lowLastByteIndex - index) * Constant.bitsPerByte
-            return UInt8(truncatingIfNeeded: low >> shift)
-        }
-    }
-    
     /// Writes a raw byte into the inline storage without interpreting string semantics.
     /// - Parameters:
     ///   - byte: The byte value to write.
     ///   - index: A zero-based index into the 16-byte buffer.
     /// - Precondition: `index` must be within 0..<16.
-    mutating func _setRawByte(_ byte: UInt8, at index: Int) {
-        precondition(index >= 0, "Index must be non-negative")
-        precondition(index < Constant.capacity, "Index must be in bounds")
-
-        if index < Constant.wordByteCapacity {
-            let shift = (Constant.highLastByteIndex - index) * Constant.bitsPerByte
-            let mask = UInt64(0xFF) << shift
-            high = (high & ~mask) | (UInt64(byte) << shift)
-        } else {
-            let shift = (Constant.lowLastByteIndex - index) * Constant.bitsPerByte
-            let mask = UInt64(0xFF) << shift
-            low = (low & ~mask) | (UInt64(byte) << shift)
-        }
-    }
-    
     mutating func _setZeroRawByte(_ byte: UInt8, at index: Int) {
         precondition(index >= 0, "Index must be non-negative")
         precondition(index < Constant.capacity, "Index must be in bounds")
