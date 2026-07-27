@@ -69,7 +69,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         }
         set {
             if newValue < Constant.capacity {
-                _setRawByte(UInt8(newValue), at: Constant.lowLastByteIndex)
+                _setZeroRawByte(UInt8(newValue), at: Constant.lowLastByteIndex)
             }
         }
     }
