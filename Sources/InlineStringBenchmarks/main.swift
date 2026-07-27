@@ -14,6 +14,7 @@ let copySuite = [copyComparison]
 let copy15ByteSuite = [copy15ByteComparison]
 
 let accessCountSuite = [accessCountComparison]
+let accessStringSuite = [accessStringComparison]
 
 let equalitySuite = [equalityComparison]
 
@@ -30,6 +31,7 @@ Benchmark.main(copySuite)
 Benchmark.main(copy15ByteSuite)
 
 Benchmark.main(accessCountSuite)
+Benchmark.main(accessStringSuite)
 
 Benchmark.main(equalitySuite)
 
