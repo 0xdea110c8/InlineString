@@ -161,11 +161,12 @@ public struct InlineString16: BitwiseCopyable, Sendable {
                 let destination = UnsafeMutableRawBufferPointer(rebasing: storageBuffer[..<utf8Count])
                 destination.copyMemory(from: UnsafeRawBufferPointer(rebasing: stringBuffer[..<utf8Count]))
             }
-
-            high = storage.0.bigEndian
-            low = storage.1.bigEndian
-            count = utf8Count
         }
+        
+        high = storage.0.bigEndian
+        low = storage.1.bigEndian
+        count = utf8Count
+        
         return true
     }
 }
