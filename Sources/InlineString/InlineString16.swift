@@ -111,19 +111,27 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     ///   can succeed before creating a value.
     public init(_ string: String) {
         self.init()
+
+        guard !string.isEmpty else { return }
         
-        var index = 0
-        
-        for byte in string.utf8 {
-            if index < Constant.capacity {
-                _setZeroRawByte(byte, at: index)
-            } else {
+        let utf8 = string.utf8
+        let utf8Count = utf8.count
+        var storage = (high, low)
+
+        withUnsafeBytes(of: utf8) { stringBuffer in
+            guard utf8Count <= Constant.capacity else {
                 fatalError("InlineString16 capacity exceeded")
             }
-            index += 1
+
+            withUnsafeMutableBytes(of: &storage) { storageBuffer in
+                let destination = UnsafeMutableRawBufferPointer(rebasing: storageBuffer[..<utf8Count])
+                destination.copyMemory(from: UnsafeRawBufferPointer(stringBuffer))
+            }
+
+            high = storage.0.bigEndian
+            low = storage.1.bigEndian
+            count = utf8Count
         }
-        
-        count = index
     }
     
     /// Creates an `InlineString16` instance from a string if it fits within the available inline storage.
@@ -132,6 +140,11 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// - Returns: An initialized `InlineString16` value, or `nil` if the
     ///   string does not fit within the capacity of `InlineString16`.
     public init?(validating string: String) {
+        guard !string.isEmpty else {
+            self.init()
+            return
+        }
+        
         guard Self.canStore(string) else {
             return nil
         }
