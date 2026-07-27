@@ -95,12 +95,11 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     
     /// Creates an `InlineString16`instance from a string.
     ///
-    /// - Parameter string: A string to store.
-    ///
     /// - Important: The UTF-8 representation of `string` must fit within the
     ///   capacity of `InlineString16`. If it does not, initialization terminates
     ///   with a fatal error. Use `canStore(_:)` to check whether initialization
     ///   can succeed before creating a value.
+    /// - Parameter string: A string to store.
     public init(_ string: String) {
         self.init()
 
@@ -121,10 +120,11 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     }
     
     /// Provides temporary access to the stored UTF-8 bytes.
-    /// - Parameter body: A closure that receives a buffer containing the stored UTF-8 bytes.
-    /// - Returns: The value returned by `body`.
     ///
     /// The buffer is valid only for the duration of `body`.
+    ///
+    /// - Parameter body: A closure that receives a buffer containing the stored UTF-8 bytes.
+    /// - Returns: The value returned by `body`.
     /// - Throws: Rethrows any error thrown by `body`.
     public func withUnsafeUTF8Bytes<R>(_ body: (UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R {
         let storage = (high.bigEndian, low.bigEndian)
@@ -137,6 +137,17 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     
     // MARK: - Private methods
     
+    /// Initializes the storage with the UTF-8 representation of the given string.
+    ///
+    /// The string must fit within the inline storage capacity. When `validating` is
+    /// enabled, initialization fails instead of trapping if the capacity is exceeded.
+    ///
+    /// - Parameters:
+    ///   - string: The source string used to initialize the storage.
+    ///   - validating: A Boolean value indicating whether capacity violations should
+    ///     return `false` instead of triggering a runtime trap.
+    /// - Returns: `true` if the string was successfully stored; otherwise, `false`
+    ///   when validation is enabled and the string exceeds the storage capacity.
     @discardableResult
     mutating func _initialize(from string: String, validating: Bool) -> Bool {
         guard !string.isEmpty else {
@@ -145,22 +156,15 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         
         let utf8 = string.utf8
         let utf8Count = utf8.count
+        var storage: (UInt64, UInt64) = (0, 0)
         
-        guard utf8Count <= Constant.capacity else {
-            if validating {
-                return false
-            } else {
-                fatalError("InlineString16 capacity exceeded")
-            }
-        }
-        
-        var storage = (high, low)
-
-        withUnsafeBytes(of: utf8) { stringBuffer in
-            withUnsafeMutableBytes(of: &storage) { storageBuffer in
-                let destination = UnsafeMutableRawBufferPointer(rebasing: storageBuffer[..<utf8Count])
-                destination.copyMemory(from: UnsafeRawBufferPointer(rebasing: stringBuffer[..<utf8Count]))
-            }
+        switch utf8Count {
+        case 0..<Constant.capacity:
+            _copyUTF8Bytes(from: utf8, to: &storage)
+        case Constant.capacity:
+            _copyStringContent(from: string, to: &storage)
+        default:
+            return _onExceedingCapacity(validating: validating)
         }
         
         high = storage.0.bigEndian
@@ -168,6 +172,54 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         count = utf8Count
         
         return true
+    }
+    
+    /// Copies UTF-8 bytes into the provided storage buffer.
+    ///
+    /// The caller must ensure that the byte count does not exceed the available
+    /// inline storage capacity.
+    ///
+    /// - Parameters:
+    ///   - utf8: A UTF-8 view containing the bytes to copy.
+    ///   - storage: The destination storage tuple.
+    mutating func _copyUTF8Bytes(from utf8: String.UTF8View, to storage: inout (UInt64, UInt64)) {
+        withUnsafeBytes(of: utf8) { stringBuffer in
+            withUnsafeMutableBytes(of: &storage) { storageBuffer in
+                let destination = UnsafeMutableRawBufferPointer(rebasing: storageBuffer[..<utf8.count])
+                destination.copyMemory(from: UnsafeRawBufferPointer(rebasing: stringBuffer[..<utf8.count]))
+            }
+        }
+    }
+    
+    /// Copies the UTF-8 contents of a string into the provided storage buffer.
+    ///
+    /// The caller must ensure that the byte count does not exceed the available
+    /// inline storage capacity.
+    ///
+    /// - Parameters:
+    ///   - string: The source string.
+    ///   - storage: The destination storage tuple.
+    mutating func _copyStringContent(from string: String, to storage: inout (UInt64, UInt64)) {
+        var string = string
+        
+        string.withUTF8 { stringBuffer in
+            withUnsafeMutableBytes(of: &storage) { storageBuffer in
+                storageBuffer.copyMemory(from: UnsafeRawBufferPointer(stringBuffer))
+            }
+        }
+    }
+    
+    /// Handles an attempt to store a string that exceeds the inline storage capacity.
+    /// - Note: This method traps when validation is disabled.
+    /// - Parameter validating: A Boolean value indicating whether the operation
+    ///   should fail gracefully instead of trapping.
+    /// - Returns: `false` when validation is enabled.
+    func _onExceedingCapacity(validating: Bool) -> Bool {
+        if validating {
+            return false
+        }
+        
+        fatalError("InlineString16 capacity exceeded")
     }
 }
 

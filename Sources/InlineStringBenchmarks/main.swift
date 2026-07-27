@@ -8,6 +8,8 @@ print("InlineString16 stride:", MemoryLayout<InlineString16>.stride)
 
 let initEmptySuite = [initEmptyComparison]
 let initSuite = [initComparison]
+let init15Suite = [init15Comparison]
+let init16Suite = [init16Comparison]
 
 let copyEmptySuite = [copyEmptyComparison]
 let copySuite = [copyComparison]
@@ -25,6 +27,8 @@ let arraySearchSuite = [arraySearchComparison]
 
 Benchmark.main(initEmptySuite)
 Benchmark.main(initSuite)
+Benchmark.main(init15Suite)
+Benchmark.main(init16Suite)
 
 Benchmark.main(copyEmptySuite)
 Benchmark.main(copySuite)
