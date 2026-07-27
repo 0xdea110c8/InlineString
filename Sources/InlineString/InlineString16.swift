@@ -11,14 +11,6 @@
 ///   byte cannot be represented in the 16-byte inline storage.
 public struct InlineString16: BitwiseCopyable, Sendable {
     
-    // MARK: - Types
-    
-    /// Errors thrown by `InlineString16`.
-    //    public enum InlineString16Error: Error {
-    //        /// The UTF-8 representation of a string exceeds the inline capacity.
-    //        case capacityExceeded
-    //    }
-    
     // MARK: - Constants
     
     /// Internal constants
