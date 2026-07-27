@@ -139,6 +139,12 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         self.init(string)
     }
     
+    /// Provides temporary access to the stored UTF-8 bytes.
+    /// - Parameter body: A closure that receives a buffer containing the stored UTF-8 bytes.
+    /// - Returns: The value returned by `body`.
+    ///
+    /// The buffer is valid only for the duration of `body`.
+    /// - Throws: Rethrows any error thrown by `body`.
     public func withUnsafeUTF8Bytes<R>(_ body: (UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R {
         let storage = (high.bigEndian, low.bigEndian)
         
