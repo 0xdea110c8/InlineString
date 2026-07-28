@@ -1,3 +1,5 @@
+import Darwin
+
 /// A 16-byte, fixed-capacity UTF-8 string stored entirely inline.
 ///
 /// `InlineString16` keeps its UTF-8 bytes directly within the value without heap allocation,
@@ -11,23 +13,6 @@
 ///   byte cannot be represented in the 16-byte inline storage.
 public struct InlineString16: BitwiseCopyable, Sendable {
     
-    // MARK: - Constants
-    
-    /// Internal constants
-    enum Constant {
-        /// Total number of UTF-8 bytes the inline buffer can hold.
-        static let capacity = 16
-        /// Number of bits in a single byte; used for shift calculations.
-        static let bitsPerByte = 8
-        /// Number of bytes in a 64-bit word (UInt64).
-        static let wordByteCapacity = 8
-        /// Index of the last addressable byte within the high 64-bit word.
-        static let highLastByteIndex = wordByteCapacity - 1
-        /// Index of the last addressable byte within the combined 16-byte storage.
-        static let lowLastByteIndex = capacity - 1
-        static let smallStringSize = 15
-    }
-    
     // MARK: - Static methods
     
     /// Returns a Boolean value indicating whether a string representation
@@ -39,14 +24,14 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// - Parameter string: A string representation to check.
     /// - Returns: `true` if the string fits; otherwise, `false`.
     public static func canStore<StringRepresentation: StringProtocol>(_ string: StringRepresentation) -> Bool {
-        return string.utf8.count <= Constant.capacity
+        return string.utf8.count <= 16
     }
     
     // MARK: - Public properties
     
     /// The maximum number of UTF-8 bytes this instance can store.
     public var capacity: Int {
-        Constant.capacity
+        16
     }
     
     /// The number of UTF-8 bytes currently stored in the buffer.
@@ -54,14 +39,14 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         get {
             let countByte = UInt8(truncatingIfNeeded: high >> 56)
             
-            if countByte < Constant.capacity {
+            if countByte < 16 {
                 return Int(countByte)
             } else {
-                return Constant.capacity
+                return 16
             }
         }
         set {
-            if newValue < Constant.capacity {
+            if newValue < 16 {
                 high = (high & 0x00FF_FFFF_FFFF_FFFF) | (UInt64(newValue) << 56)
             }
         }
@@ -103,7 +88,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// - Parameter string: A string to store.
     public init(_ string: String) {
         self.init()
-
+        
         _initialize(from: string, validating: false)
     }
     
@@ -114,7 +99,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     ///   string does not fit within the capacity of `InlineString16`.
     public init?(validating string: String) {
         self.init()
-
+        
         guard _initialize(from: string, validating: true) else {
             return nil
         }
@@ -128,7 +113,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// - Returns: The value returned by `body`.
     /// - Throws: Rethrows any error thrown by `body`.
     public func withUnsafeUTF8Bytes<Result>(_ body: (UnsafeBufferPointer<UInt8>) throws -> Result) rethrows -> Result {
-        let storage = (high.bigEndian, low.bigEndian)
+        let storage = (low, high)
         
         return try withUnsafeBytes(of: storage) { rawBuffer in
             let buffer = rawBuffer.bindMemory(to: UInt8.self)
@@ -159,15 +144,15 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         let utf8Count = utf8.count
         
         switch utf8Count {
-        case 0..<Constant.capacity:
-            _copyUTF8Bytes(from: utf8)
-        case Constant.capacity:
+        case 0..<16:
+            _copyUTF8Bytes(from: utf8, count: utf8Count)
+        case 16:
             _copyStringContent(from: string)
         default:
             return _onExceedingCapacity(validating: validating)
         }
         
-        count = utf8.count
+        count = utf8Count
         return true
     }
     
@@ -179,22 +164,27 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// - Parameters:
     ///   - utf8: A UTF-8 view containing the bytes to copy.
     ///   - storage: The destination storage tuple.
-    mutating func _copyUTF8Bytes(from utf8: String.UTF8View) {
-        precondition(utf8.count <= Constant.smallStringSize, "String must fit within small string capacity.")
+    mutating func _copyUTF8Bytes(from utf8: String.UTF8View, count: Int) {
+        precondition(utf8.count <= 15, "String must fit within small string capacity.")
         
         withUnsafeBytes(of: utf8) { stringBuffer in
             withUnsafeMutableBytes(of: &low) { lowBuffer in
                 withUnsafeMutableBytes(of: &high) { highBuffer in
+                    let count = stringBuffer.count
+                    let firstCount = min(8, count)
+                    
                     lowBuffer.copyMemory(
                         from: UnsafeRawBufferPointer(
-                            rebasing: stringBuffer[..<min(Constant.wordByteCapacity, utf8.count)]
+                            start: stringBuffer.baseAddress,
+                            count: firstCount
                         )
                     )
                     
-                    if utf8.count > Constant.wordByteCapacity {
+                    if count > 8 {
                         highBuffer.copyMemory(
                             from: UnsafeRawBufferPointer(
-                                rebasing: stringBuffer[Constant.wordByteCapacity..<utf8.count]
+                                start: stringBuffer.baseAddress!.advanced(by: 8),
+                                count: count - 8
                             )
                         )
                     }
@@ -215,13 +205,13 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         var string = string
         
         string.withUTF8 { stringBuffer in
-            precondition(stringBuffer.count == Constant.capacity, "String must contain exactly \(Constant.capacity) bytes.")
+            precondition(stringBuffer.count == 16, "String must contain exactly 16 bytes.")
             
             withUnsafeMutableBytes(of: &low) { lowBuffer in
                 lowBuffer.copyMemory(
                     from: UnsafeRawBufferPointer(
                         start: stringBuffer.baseAddress,
-                        count: Constant.wordByteCapacity
+                        count: 8
                     )
                 )
             }
@@ -229,8 +219,8 @@ public struct InlineString16: BitwiseCopyable, Sendable {
             withUnsafeMutableBytes(of: &high) { highBuffer in
                 highBuffer.copyMemory(
                     from: UnsafeRawBufferPointer(
-                        start: stringBuffer.baseAddress!.advanced(by: Constant.wordByteCapacity),
-                        count: Constant.wordByteCapacity
+                        start: stringBuffer.baseAddress!.advanced(by: 8),
+                        count: 8
                     )
                 )
             }
