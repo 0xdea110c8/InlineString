@@ -411,7 +411,7 @@ struct InlineString16Tests {
         // then
         #expect(inlineString.string.utf8.elementsEqual(string.utf8))
     }
-
+    
 #if os(macOS)
     // NOTE: This test intentionally terminates the current process and should only be run on macOS.
     @Test
@@ -452,6 +452,22 @@ struct InlineString16Tests {
         let inlineStringFromLiteral: InlineString16 = "1234567890"
         // then
         #expect(inlineString == inlineStringFromLiteral)
+    }
+    
+    @Test
+    func `description returns the string representation`() {
+        // given
+        let inlineString = InlineString16(TestData.stringFitsCapacity)
+        // then
+        #expect(String(describing: inlineString) == TestData.stringFitsCapacity)
+    }
+    
+    @Test
+    func `debugDescription returns the expected representation`() {
+        // given
+        let inlineString = InlineString16(TestData.stringFitsCapacity)
+        // then
+        #expect(String(reflecting: inlineString) == "InlineString16(\"\(TestData.stringFitsCapacity)\")")
     }
 }
 
