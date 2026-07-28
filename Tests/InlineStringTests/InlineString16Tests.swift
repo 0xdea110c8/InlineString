@@ -27,7 +27,7 @@ struct InlineString16Tests {
     
     @Test(
         arguments: [
-            TestData.stringExceedingCapacity,
+            TestData.stringExceedsCapacity,
             "12345678901234567890"
         ]
     )
@@ -153,7 +153,7 @@ struct InlineString16Tests {
     func `init(_:) traps when string exceeds the capacity`() async {
         // then
         await #expect(processExitsWith: .failure) {
-            let _ = InlineString16(TestData.stringExceedingCapacity)
+            let _ = InlineString16(TestData.stringExceedsCapacity)
         }
     }
 #endif // os(macOS)
@@ -182,7 +182,7 @@ struct InlineString16Tests {
     
     @Test(
         arguments: [
-            TestData.stringExceedingCapacity
+            TestData.stringExceedsCapacity
         ]
     )
     func `init(validating:) fails when string exceeds the capacity`(
@@ -296,14 +296,14 @@ struct InlineString16Tests {
         // then
         await #expect(processExitsWith: .failure) {
             var inlineString = InlineString16()
-            inlineString._initialize(from: TestData.stringExceedingCapacity, validating: false)
+            inlineString._initialize(from: TestData.stringExceedsCapacity, validating: false)
         }
     }
 #endif // os(macOS)
     
     @Test(
         arguments: [
-            TestData.stringExceedingCapacity
+            TestData.stringExceedsCapacity
         ]
     )
     func `_initialize(from:validating:) returns false when string exceeds the capacity and validation enabled`(
@@ -390,7 +390,7 @@ struct InlineString16Tests {
         }
         await #expect(processExitsWith: .failure) {
             var inlineString = InlineString16()
-            let string = TestData.stringExceedingCapacity
+            let string = TestData.stringExceedsCapacity
             inlineString._copyStringContent(from: string)
         }
     }
@@ -463,7 +463,9 @@ struct InlineString16Tests {
             "USA 🇺🇸"
         ]
     )
-    func `== returns true for identical inline strings`(_ string: String) {
+    func `== returns true for identical inline strings`(
+        _ string: String
+    ) {
         // given
         let lhs = InlineString16(string)
         let rhs = InlineString16(string)
@@ -498,6 +500,65 @@ struct InlineString16Tests {
         #expect(lhs != rhs)
     }
     
+    @Test(
+        arguments: [
+            TestData.stringFitsCapacity,
+            "abc123",
+            "London",
+            "Текст",
+            "USA 🇺🇸",
+            ""
+        ]
+    )
+    func `init(from:) decodes a string within capacity`(
+        _ string: String
+    ) throws {
+        // given
+        let data = try JSONEncoder().encode(string)
+        // when
+        let inlineString = try JSONDecoder().decode(InlineString16.self, from: data)
+        // then
+        #expect(inlineString.string == string)
+    }
+    
+    @Test(
+        arguments: [
+            TestData.stringExceedsCapacity
+        ]
+    )
+    func `init(from:) throws dataCorrupted if the string exceeds capacity`(
+        _ string: String
+    ) throws {
+        // given
+        let data = try JSONEncoder().encode(string)
+        // then
+        #expect(throws: DecodingError.self) {
+            try JSONDecoder().decode(InlineString16.self, from: data)
+        }
+    }
+    
+    @Test(
+        arguments: [
+            TestData.stringFitsCapacity,
+            TestData.stringEqualsCapacity,
+            "abc123",
+            "London",
+            "Текст",
+            "USA 🇺🇸"
+        ]
+    )
+    func `encode(to:) encodes the string`(
+        _ string: String
+    ) throws {
+        // given
+        let inlineString = InlineString16(string)
+        // when
+        let encodedInlineString = try JSONEncoder().encode(inlineString)
+        let encodedString = try JSONEncoder().encode(string)
+        // then
+        #expect(encodedString == encodedInlineString)
+    }
+    
     @Test
     func `description returns the string representation`() {
         // given
@@ -522,9 +583,10 @@ extension InlineString16Tests {
         }
         
         static let stringFitsCapacity: String = "1234567890"
+        static let stringFitsCapacityEncoded: Data = Data(stringFitsCapacity.utf8)
         static let anotherStringFitsCapacity: String = "0123456789"
         static let stringEqualsCapacity: String = "1234567890123456"
-        static let stringExceedingCapacity: String = "12345678901234567890"
+        static let stringExceedsCapacity: String = "12345678901234567890"
         static let emptyString: String = ""
         static let nonEmptyString: String = "12345678"
         static let heapAllocatedString = "1234567890123456"
