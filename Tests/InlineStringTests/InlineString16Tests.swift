@@ -344,6 +344,18 @@ struct InlineString16Tests {
         #expect(secondInlineString.count == string.utf8.count)
         #expect(secondInlineString.string == string)
     }
+    
+#if os(macOS)
+    // NOTE: This test intentionally terminates the current process and should only be run on macOS.
+    @Test
+    func `_copyUTF8Bytes(from:to:) traps for a heap-allocated string`() async {
+        // then
+        await #expect(processExitsWith: .failure) {
+            var storage: (UInt64, UInt64) = (0, 0)
+            InlineString16()._copyUTF8Bytes(from: TestData.heapAllocatedString.utf8, to: &storage)
+        }
+    }
+#endif // os(macOS)
 }
 
 extension InlineString16Tests {
@@ -357,6 +369,7 @@ extension InlineString16Tests {
         static let stringExceedingCapacity: String = "12345678901234567890"
         static let emptyString: String = ""
         static let nonEmptyString: String = "12345678"
+        static let heapAllocatedString = "1234567890123456"
     }
 }
 //
