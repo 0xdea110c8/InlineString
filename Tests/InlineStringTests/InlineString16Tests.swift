@@ -506,6 +506,26 @@ struct InlineString16Tests {
             "abc123",
             "London",
             "Текст",
+            "USA 🇺🇸"
+        ]
+    )
+    func `hashValue is equal for equal inline strings`(
+        _ string: String
+    ) {
+        // given
+        let lhs = InlineString16(string)
+        let rhs = InlineString16(string)
+        // then
+        #expect(lhs == rhs)
+        #expect(lhs.hashValue == rhs.hashValue)
+    }
+    
+    @Test(
+        arguments: [
+            TestData.stringFitsCapacity,
+            "abc123",
+            "London",
+            "Текст",
             "USA 🇺🇸",
             ""
         ]
