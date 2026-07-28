@@ -433,6 +433,26 @@ struct InlineString16Tests {
         // then
         #expect(result == false)
     }
+    
+#if os(macOS)
+    // NOTE: This test intentionally terminates the current process and should only be run on macOS.
+    @Test
+    func `init(stringLiteral:) traps when string exceeds the capacity`() async {
+        // then
+        await #expect(processExitsWith: .failure) {
+            let _ = InlineString16("12345678901234567890")
+        }
+    }
+#endif // os(macOS)
+    
+    @Test
+    func `init(stringLiteral:) produces the same inline string as init(_:)`() {
+        // given
+        let inlineString = InlineString16("1234567890")
+        let inlineStringFromLiteral: InlineString16 = "1234567890"
+        // then
+        #expect(inlineString == inlineStringFromLiteral)
+    }
 }
 
 extension InlineString16Tests {
@@ -464,31 +484,6 @@ extension InlineString16Tests {
 //        let inlineString = InlineString16(truncating: TestData.string)
 //        // then
 //        #expect(String(reflecting: inlineString) == "InlineString16(\"\(TestData.string)\")")
-//    }
-//    
-//    @Test("init(from:) succeeds and stores full string when it fits capacity")
-//    func decodingStoresFullStringWhenFits() throws {
-//        // when
-//        let inlineString = try JSONDecoder().decode(InlineString16.self, from: TestData.dataFitsCapacity)
-//        // then
-//        #expect(inlineString.count == TestData.stringFitsCapacity.utf8.count)
-//        withUnsafeBytes(of: inlineString._storage) { bytes in
-//            let stored = Array(bytes.prefix(inlineString.count))
-//            #expect(stored == Array(TestData.stringFitsCapacity.utf8))
-//        }
-//    }
-//    
-//    @Test("init(from:) fails when source exceeds capacity")
-//    func decodingFailsWhenTooLong() throws {
-//        // given
-//        let dataExceedsCapacity = TestData.dataExceedsCapacity
-//        // when
-//        do {
-//            _ = try JSONDecoder().decode(InlineString16.self, from: dataExceedsCapacity)
-//        } catch _ as InlineString16.InlineString16Error {
-//            // then
-//            #expect(true)
-//        }
 //    }
 //    
 //    @available(iOS 26.0, *)
