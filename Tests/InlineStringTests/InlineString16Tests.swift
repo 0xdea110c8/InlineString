@@ -96,6 +96,32 @@ struct InlineString16Tests {
         #expect(!inlineString.isEmpty)
     }
     
+    @Test(
+        "string matches the decoded UTF-8 bytes",
+        arguments: [
+            InlineString16(),
+            InlineString16(TestData.stringFitsCapacity),
+            InlineString16(TestData.stringEqualsCapacity),
+            InlineString16(TestData.emptyString),
+            InlineString16(TestData.nonEmptyString),
+            "",
+            "abc123",
+            "London",
+            "Текст",
+            "USA 🇺🇸"
+        ]
+    )
+    func stringMatchesDecodedUTF8(_ inlineString: InlineString16) {
+        // given
+        let storage = (inlineString.high.bigEndian, inlineString.low.bigEndian)
+        let decodedUTF8 = withUnsafeBytes(of: storage) { buffer in
+            let bytes = buffer.prefix(inlineString.count)
+            return String(decoding: bytes, as: UTF8.self)
+        }
+        // then
+        #expect(inlineString.string == decodedUTF8)
+    }
+    
     private enum TestData {
         static let stringFitsCapacity: String = "1234567890"
         static let stringEqualsCapacity: String = "1234567890123456"
