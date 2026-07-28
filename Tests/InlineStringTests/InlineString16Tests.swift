@@ -18,7 +18,9 @@ struct InlineString16Tests {
             "USA 🇺🇸"
         ]
     )
-    func `canStore(_:) returns true when the string fits within the capacity`(_ string: String) {
+    func `canStore(_:) returns true when the string fits within the capacity`(
+        _ string: String
+    ) {
         // then
         #expect(InlineString16.canStore(string))
     }
@@ -29,7 +31,9 @@ struct InlineString16Tests {
             "12345678901234567890"
         ]
     )
-    func `canStore(_:) returns false when the string exceeds the capacity`(_ string: String) {
+    func `canStore(_:) returns false when the string exceeds the capacity`(
+        _ string: String
+    ) {
         // then
         #expect(!InlineString16.canStore(string))
     }
@@ -42,7 +46,9 @@ struct InlineString16Tests {
             "1234567890"
         ]
     )
-    func `capacity matches type constant`(_ inlineString: InlineString16) {
+    func `capacity matches type constant`(
+        _ inlineString: InlineString16
+    ) {
         // then
         #expect(inlineString.capacity == InlineString16.Constant.capacity)
     }
@@ -54,7 +60,9 @@ struct InlineString16Tests {
             "1234567890"
         ]
     )
-    func `count uses the last byte of the lower word as metadata below capacity`(_ inlineString: InlineString16) {
+    func `count uses the last byte of the lower word as metadata below capacity`(
+        _ inlineString: InlineString16
+    ) {
         // then
         #expect(inlineString.count == UInt8(truncatingIfNeeded: inlineString.low))
     }
@@ -66,7 +74,9 @@ struct InlineString16Tests {
             "1234567890123456"
         ]
     )
-    func `count uses capacity when storage is fully occupied`(_ inlineString: InlineString16) {
+    func `count uses capacity when storage is fully occupied`(
+        _ inlineString: InlineString16
+    ) {
         // then
         #expect(inlineString.count != UInt8(truncatingIfNeeded: inlineString.low))
         #expect(inlineString.count == inlineString.capacity)
@@ -79,7 +89,9 @@ struct InlineString16Tests {
             ""
         ]
     )
-    func `isEmpty returns true when the count is zero`(_ inlineString: InlineString16) {
+    func `isEmpty returns true when the count is zero`(
+        _ inlineString: InlineString16
+    ) {
         // then
         #expect(inlineString.count == 0)
         #expect(inlineString.isEmpty)
@@ -91,7 +103,9 @@ struct InlineString16Tests {
             "1234567890"
         ]
     )
-    func `isEmpty returns false when the count is not zero`(_ inlineString: InlineString16) {
+    func `isEmpty returns false when the count is not zero`(
+        _ inlineString: InlineString16
+    ) {
         // then
         #expect(inlineString.count != 0)
         #expect(!inlineString.isEmpty)
@@ -111,7 +125,9 @@ struct InlineString16Tests {
             "USA 🇺🇸"
         ]
     )
-    func `string matches the decoded UTF-8 bytes`(_ inlineString: InlineString16) {
+    func `string matches the decoded UTF-8 bytes`(
+        _ inlineString: InlineString16
+    ) {
         // given
         let storage = (inlineString.high.bigEndian, inlineString.low.bigEndian)
         let decodedUTF8 = withUnsafeBytes(of: storage) { buffer in
@@ -154,7 +170,9 @@ struct InlineString16Tests {
             "USA 🇺🇸"
         ]
     )
-    func `init(_:) stores a string when it fits within the capacity`(_ string: String) {
+    func `init(_:) stores a string when it fits within the capacity`(
+        _ string: String
+    ) {
         // given
         let inlineString = InlineString16(string)
         // then
@@ -162,10 +180,16 @@ struct InlineString16Tests {
         #expect(inlineString.string == string)
     }
     
-    @Test
-    func `init(validating:) fails when string exceeds the capacity`() {
+    @Test(
+        arguments: [
+            TestData.stringExceedingCapacity
+        ]
+    )
+    func `init(validating:) fails when string exceeds the capacity`(
+        _ string: String
+    ) {
         // given
-        let inlineString = InlineString16(validating: TestData.stringExceedingCapacity)
+        let inlineString = InlineString16(validating: string)
         // then
         #expect(inlineString == nil)
     }
@@ -182,7 +206,9 @@ struct InlineString16Tests {
             "USA 🇺🇸"
         ]
     )
-    func `init(validating:) stores a string when it fits within the capacity`(_ string: String) {
+    func `init(validating:) stores a string when it fits within the capacity`(
+        _ string: String
+    ) {
         // given
         let inlineString = InlineString16(validating: string)
         // then
@@ -202,7 +228,9 @@ struct InlineString16Tests {
             "USA 🇺🇸"
         ]
     )
-    func `withUnsafeUTF8Bytes(_:) passes a buffer matching stored bytes and count`(_ inlineString: InlineString16) {
+    func `withUnsafeUTF8Bytes(_:) passes a buffer matching stored bytes and count`(
+        _ inlineString: InlineString16
+    ) {
         // given
         let storage = (inlineString.high.bigEndian, inlineString.low.bigEndian)
         // when
@@ -228,7 +256,9 @@ struct InlineString16Tests {
             "USA 🇺🇸"
         ]
     )
-    func `withUnsafeUTF8Bytes(_:) rethrows errors from the closure`(_ inlineString: InlineString16) {
+    func `withUnsafeUTF8Bytes(_:) rethrows errors from the closure`(
+        _ inlineString: InlineString16
+    ) {
         // when
         do {
             _ = try inlineString.withUnsafeUTF8Bytes { _ in
@@ -246,7 +276,9 @@ struct InlineString16Tests {
             ""
         ]
     )
-    func `_initialize(from:validating:) returns true when string is empty`(_ string: String) {
+    func `_initialize(from:validating:) returns true when string is empty`(
+        _ string: String
+    ) {
         // given
         var inlineString = InlineString16()
         // when
@@ -269,12 +301,18 @@ struct InlineString16Tests {
     }
 #endif // os(macOS)
     
-    @Test
-    func `_initialize(from:validating:) returns false when string exceeds the capacity and validation enabled`() {
+    @Test(
+        arguments: [
+            TestData.stringExceedingCapacity
+        ]
+    )
+    func `_initialize(from:validating:) returns false when string exceeds the capacity and validation enabled`(
+        _ string: String
+    ) {
         // given
         var inlineString = InlineString16()
         // when
-        let result = inlineString._initialize(from: TestData.stringExceedingCapacity, validating: true)
+        let result = inlineString._initialize(from: string, validating: true)
         // then
         #expect(result == false)
     }
@@ -289,7 +327,9 @@ struct InlineString16Tests {
             "USA 🇺🇸"
         ]
     )
-    func `_initialize(from:validating:) stores a string and returns true when string fits within the capacity`(_ string: String) {
+    func `_initialize(from:validating:) stores a string and returns true when string fits within the capacity`(
+        _ string: String
+    ) {
         // given
         var inlineString = InlineString16()
         var secondInlineString = InlineString16()
