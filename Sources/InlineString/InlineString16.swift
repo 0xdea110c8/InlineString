@@ -311,38 +311,14 @@ extension InlineString16: CustomDebugStringConvertible {
         "InlineString16(\"\(string)\")"
     }
 }
-//
-//// MARK: - Decodable
-//
-//extension InlineString16: Decodable {
-//    /// Creates an instance by decoding a string.
-//    /// - Parameter decoder: The decoder to read from.
-//    /// - Throws: A decoding error if the decoded string exceeds ``capacity`` bytes.
-//    public init(from decoder: any Decoder) throws {
-//        let container = try decoder.singleValueContainer()
-//        let value = try container.decode(String.self)
-//        try self.init(decoding: value)
-//    }
-//}
-//
-//// MARK: - Encodable
-//
-//extension InlineString16: Encodable {
-//    /// Encodes this value as a single string.
-//    /// - Parameter encoder: The encoder to write to.
-//    /// - Throws: An error if encoding fails.
-//    public func encode(to encoder: any Encoder) throws {
-//        var container = encoder.singleValueContainer()
-//        try container.encode(string)
-//    }
-//}
-//
-//// MARK: - String + InlineString
-//
-//extension String {
-//    /// Creates a `String` from an `InlineString16`.
-//    /// - Parameter value: The inline string to convert.
-//    public init(_ value: InlineString16) {
-//        self = value.string
-//    }
-//}
+
+
+// MARK: - String + InlineString
+
+extension String {
+    /// Creates a `String` from an `InlineString16`.
+    /// - Parameter value: The inline string to convert.
+    public init(_ value: InlineString16) {
+        self = value.string
+    }
+}
