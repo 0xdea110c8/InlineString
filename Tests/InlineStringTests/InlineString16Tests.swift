@@ -25,6 +25,7 @@ struct InlineString16Tests {
         ]
     )
     func canStoreReturnsFalseForStringLargerThanCapacity(_ string: String) {
+        // then
         #expect(!InlineString16.canStore(string))
     }
     
@@ -122,6 +123,17 @@ struct InlineString16Tests {
         #expect(inlineString.string == decodedUTF8)
     }
     
+    @Test("init() creates empty inline string with zeroed storage")
+    func initCreatesZeroedStorage() {
+        // given
+        let inlineString = InlineString16()
+        // then
+        #expect(inlineString.high == 0)
+        #expect(inlineString.low == 0)
+    }
+}
+
+extension InlineString16Tests {
     private enum TestData {
         static let stringFitsCapacity: String = "1234567890"
         static let stringEqualsCapacity: String = "1234567890123456"
@@ -130,30 +142,7 @@ struct InlineString16Tests {
         static let nonEmptyString: String = "12345678"
     }
 }
-//    
-//    @Test("string matches the decoded UTF-8 bytes")
-//    func stringMatchesDecodedUTF8() {
-//        // given
-//        let inlineString = InlineString16(truncating: TestData.string)
-//        let string = inlineString.string
-//        let decodedUTF8 = withUnsafeBytes(of: inlineString._storage) { buffer in
-//            let bytes = buffer.prefix(inlineString.count)
-//            return String(decoding: bytes, as: UTF8.self)
-//        }
-//        // then
-//        #expect(string == decodedUTF8)
-//    }
-//    
-//    @Test("init() creates empty inline string with zeroed storage")
-//    func initCreatesZeroedStorage() {
-//        let inlineString = InlineString16()
-//        withUnsafeBytes(of: inlineString._storage) { bytes in
-//            #expect(bytes.count == InlineString16.capacity)
-//            #expect(bytes.allSatisfy { $0 == 0 })
-//        }
-//        #expect(inlineString.count == 0)
-//    }
-//    
+//
 //    @Test("init(truncating:) stores full string when it fits capacity")
 //    func truncatingInitStoresFullStringWhenFits() {
 //        // given
