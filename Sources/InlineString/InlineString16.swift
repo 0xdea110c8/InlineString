@@ -25,6 +25,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         static let highLastByteIndex = wordByteCapacity - 1
         /// Index of the last addressable byte within the combined 16-byte storage.
         static let lowLastByteIndex = capacity - 1
+        static let smallStringSize = 15
     }
     
     // MARK: - Static methods
@@ -182,7 +183,9 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// - Parameters:
     ///   - utf8: A UTF-8 view containing the bytes to copy.
     ///   - storage: The destination storage tuple.
-    mutating func _copyUTF8Bytes(from utf8: String.UTF8View, to storage: inout (UInt64, UInt64)) {
+    func _copyUTF8Bytes(from utf8: String.UTF8View, to storage: inout (UInt64, UInt64)) {
+        precondition(utf8.count <= Constant.smallStringSize, "String must fit within small string capacity.")
+        
         withUnsafeBytes(of: utf8) { stringBuffer in
             withUnsafeMutableBytes(of: &storage) { storageBuffer in
                 let destination = UnsafeMutableRawBufferPointer(rebasing: storageBuffer[..<utf8.count])
@@ -199,7 +202,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// - Parameters:
     ///   - string: The source string.
     ///   - storage: The destination storage tuple.
-    mutating func _copyStringContent(from string: String, to storage: inout (UInt64, UInt64)) {
+    func _copyStringContent(from string: String, to storage: inout (UInt64, UInt64)) {
         var string = string
         
         string.withUTF8 { stringBuffer in
