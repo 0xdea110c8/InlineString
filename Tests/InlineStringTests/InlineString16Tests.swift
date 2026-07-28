@@ -50,7 +50,7 @@ struct InlineString16Tests {
         _ inlineString: InlineString16
     ) {
         // then
-        #expect(inlineString.capacity == InlineString16.Constant.capacity)
+        #expect(inlineString.capacity == 16)
     }
     
     @Test(
@@ -64,7 +64,7 @@ struct InlineString16Tests {
         _ inlineString: InlineString16
     ) {
         // then
-        #expect(inlineString.count == UInt8(truncatingIfNeeded: inlineString.low))
+        #expect(inlineString.count == UInt8(truncatingIfNeeded: inlineString.high >> 56))
     }
     
     @Test(
@@ -129,7 +129,7 @@ struct InlineString16Tests {
         _ inlineString: InlineString16
     ) {
         // given
-        let storage = (inlineString.high.bigEndian, inlineString.low.bigEndian)
+        let storage = (inlineString.low, inlineString.high)
         let decodedUTF8 = withUnsafeBytes(of: storage) { buffer in
             let bytes = buffer.prefix(inlineString.count)
             return String(decoding: bytes, as: UTF8.self)
@@ -232,7 +232,7 @@ struct InlineString16Tests {
         _ inlineString: InlineString16
     ) {
         // given
-        let storage = (inlineString.high.bigEndian, inlineString.low.bigEndian)
+        let storage = (inlineString.low, inlineString.high)
         // when
         inlineString.withUnsafeUTF8Bytes { buffer in
             let stored = withUnsafeBytes(of: storage) { bytes in
@@ -351,8 +351,9 @@ struct InlineString16Tests {
     func `_copyUTF8Bytes(from:to:) traps for a heap-allocated string`() async {
         // then
         await #expect(processExitsWith: .failure) {
-            var storage: (UInt64, UInt64) = (0, 0)
-            InlineString16()._copyUTF8Bytes(from: TestData.heapAllocatedString.utf8, to: &storage)
+            var inlineString = InlineString16()
+            let utf8 = TestData.heapAllocatedString.utf8
+            inlineString._copyUTF8Bytes(from: utf8, count: utf8.count)
         }
     }
 #endif // os(macOS)
