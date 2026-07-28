@@ -272,9 +272,11 @@ extension InlineString16: Hashable {
     /// - Parameter hasher: The hasher to use when combining the components
     ///   of this instance.
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(count)
-        hasher.combine(high)
-        hasher.combine(low)
+        let storage = (low, high)
+        
+        withUnsafeBytes(of: storage) { buffer in
+            hasher.combine(bytes: buffer)
+        }
     }
 }
 
