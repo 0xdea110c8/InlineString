@@ -28,6 +28,10 @@ let equalitySuite = [
     equalityComparison
 ]
 
+let hashSuite = [
+    hashComparison
+]
+
 let decodeSuite = [
     decode15Comparison,
     decode16Comparison
@@ -51,6 +55,7 @@ Benchmark.main(initSuite)
 Benchmark.main(copySuite)
 Benchmark.main(accessSuite)
 Benchmark.main(equalitySuite)
+Benchmark.main(hashSuite)
 Benchmark.main(decodeSuite)
 Benchmark.main(encodeSuite)
 Benchmark.main(arrayIterationSuite)

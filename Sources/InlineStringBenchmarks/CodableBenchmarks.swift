@@ -9,7 +9,6 @@ fileprivate let inlineString16Bytes = InlineString16("1234567890123456")
 fileprivate let string15Bytes = String("123456789012345")
 fileprivate let string16Bytes = String("1234567890123456")
 
-
 let decode15Comparison = BenchmarkSuite(name: "decode-15-bytes") { suite in
     suite.benchmark("string") {
         for _ in 0..<1_000_000 {

@@ -264,6 +264,22 @@ extension InlineString16: Equatable {
     }
 }
 
+// MARK: - Hashable
+
+extension InlineString16: Hashable {
+    /// Hashes the essential components of this value by feeding them into the
+    /// given hasher.
+    /// - Parameter hasher: The hasher to use when combining the components
+    ///   of this instance.
+    public func hash(into hasher: inout Hasher) {
+        let storage = (low, high)
+        
+        withUnsafeBytes(of: storage) { buffer in
+            hasher.combine(bytes: buffer)
+        }
+    }
+}
+
 // MARK: - Codable
 
 extension InlineString16: Codable {
