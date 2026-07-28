@@ -52,17 +52,17 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// The number of UTF-8 bytes currently stored in the buffer.
     public private(set) var count: Int {
         get {
-            let lastByte = UInt8(truncatingIfNeeded: low)
+            let countByte = UInt8(truncatingIfNeeded: high >> 56)
             
-            if lastByte < Constant.capacity {
-                return Int(lastByte)
+            if countByte < Constant.capacity {
+                return Int(countByte)
             } else {
                 return Constant.capacity
             }
         }
         set {
             if newValue < Constant.capacity {
-                low |= UInt64(newValue) << 0
+                high = (high & 0x00FF_FFFF_FFFF_FFFF) | (UInt64(newValue) << 56)
             }
         }
     }
@@ -167,6 +167,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
             return _onExceedingCapacity(validating: validating)
         }
         
+        count = utf8.count
         return true
     }
     
@@ -186,21 +187,19 @@ public struct InlineString16: BitwiseCopyable, Sendable {
                 withUnsafeMutableBytes(of: &high) { highBuffer in
                     lowBuffer.copyMemory(
                         from: UnsafeRawBufferPointer(
-                            rebasing: stringBuffer[..<min(Constant.wordByteCapacity, stringBuffer.count)]
+                            rebasing: stringBuffer[..<min(Constant.wordByteCapacity, utf8.count)]
                         )
                     )
                     
-                    if stringBuffer.count > Constant.wordByteCapacity {
+                    if utf8.count > Constant.wordByteCapacity {
                         highBuffer.copyMemory(
                             from: UnsafeRawBufferPointer(
-                                rebasing: stringBuffer[Constant.wordByteCapacity..<stringBuffer.count]
+                                rebasing: stringBuffer[Constant.wordByteCapacity..<utf8.count]
                             )
                         )
                     }
                 }
             }
-            
-            count = stringBuffer.count
         }
     }
     
@@ -216,26 +215,24 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         var string = string
         
         string.withUTF8 { stringBuffer in
-            precondition(stringBuffer.count <= Constant.capacity, "String must fit within the capacity.")
+            precondition(stringBuffer.count == Constant.capacity, "String must contain exactly \(Constant.capacity) bytes.")
             
             withUnsafeMutableBytes(of: &low) { lowBuffer in
-                withUnsafeMutableBytes(of: &high) { highBuffer in
-                    lowBuffer.copyMemory(
-                        from: UnsafeRawBufferPointer(
-                            start: stringBuffer.baseAddress,
-                            count: min(Constant.wordByteCapacity, stringBuffer.count)
-                        )
+                lowBuffer.copyMemory(
+                    from: UnsafeRawBufferPointer(
+                        start: stringBuffer.baseAddress,
+                        count: Constant.wordByteCapacity
                     )
-                    
-                    if stringBuffer.count > Constant.wordByteCapacity {
-                        highBuffer.copyMemory(
-                            from: UnsafeRawBufferPointer(
-                                start: stringBuffer.baseAddress!.advanced(by: Constant.wordByteCapacity),
-                                count: stringBuffer.count - Constant.wordByteCapacity
-                            )
-                        )
-                    }
-                }
+                )
+            }
+            
+            withUnsafeMutableBytes(of: &high) { highBuffer in
+                highBuffer.copyMemory(
+                    from: UnsafeRawBufferPointer(
+                        start: stringBuffer.baseAddress!.advanced(by: Constant.wordByteCapacity),
+                        count: Constant.wordByteCapacity
+                    )
+                )
             }
         }
     }
