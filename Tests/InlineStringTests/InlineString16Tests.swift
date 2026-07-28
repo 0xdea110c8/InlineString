@@ -411,6 +411,28 @@ struct InlineString16Tests {
         // then
         #expect(inlineString.string.utf8.elementsEqual(string.utf8))
     }
+
+#if os(macOS)
+    // NOTE: This test intentionally terminates the current process and should only be run on macOS.
+    @Test
+    func `_onExceedingCapacity(validating:) traps if validation disabled`() async {
+        // then
+        await #expect(processExitsWith: .failure) {
+            let inlineString = InlineString16()
+            let _ = inlineString._onExceedingCapacity(validating: false)
+        }
+    }
+#endif // os(macOS)
+    
+    @Test
+    func `_onExceedingCapacity(validating:) returns false if validation enabled`() {
+        // given
+        let inlineString = InlineString16()
+        // when
+        let result = inlineString._onExceedingCapacity(validating: true)
+        // then
+        #expect(result == false)
+    }
 }
 
 extension InlineString16Tests {
