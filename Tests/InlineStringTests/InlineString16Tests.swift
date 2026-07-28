@@ -239,6 +239,71 @@ struct InlineString16Tests {
             #expect(error is TestData.TestError)
         }
     }
+    
+    @Test(
+        arguments: [
+            TestData.emptyString,
+            ""
+        ]
+    )
+    func `_initialize(from:validating:) returns true when string is empty`(_ string: String) {
+        // given
+        var inlineString = InlineString16()
+        // when
+        let resultWithoutValidation = inlineString._initialize(from: string, validating: false)
+        let resultWithValidation = inlineString._initialize(from: string, validating: true)
+        // then
+        #expect(resultWithoutValidation == true)
+        #expect(resultWithValidation == true)
+    }
+    
+#if os(macOS)
+    // NOTE: This test intentionally terminates the current process and should only be run on macOS.
+    @Test
+    func `_initialize(from:validating:) traps when string exceeds the capacity and validation disabled`() async {
+        // then
+        await #expect(processExitsWith: .failure) {
+            var inlineString = InlineString16()
+            inlineString._initialize(from: TestData.stringExceedingCapacity, validating: false)
+        }
+    }
+#endif // os(macOS)
+    
+    @Test
+    func `_initialize(from:validating:) returns false when string exceeds the capacity and validation enabled`() {
+        // given
+        var inlineString = InlineString16()
+        // when
+        let result = inlineString._initialize(from: TestData.stringExceedingCapacity, validating: true)
+        // then
+        #expect(result == false)
+    }
+    
+    @Test(
+        arguments: [
+            TestData.stringFitsCapacity,
+            TestData.stringEqualsCapacity,
+            "abc123",
+            "London",
+            "Текст",
+            "USA 🇺🇸"
+        ]
+    )
+    func `_initialize(from:validating:) stores a string and returns true when string fits within the capacity`(_ string: String) {
+        // given
+        var inlineString = InlineString16()
+        var secondInlineString = InlineString16()
+        // when
+        let result = inlineString._initialize(from: string, validating: true)
+        let secondResult = secondInlineString._initialize(from: string, validating: false)
+        // then
+        #expect(result == true)
+        #expect(inlineString.count == string.utf8.count)
+        #expect(inlineString.string == string)
+        #expect(secondResult == true)
+        #expect(secondInlineString.count == string.utf8.count)
+        #expect(secondInlineString.string == string)
+    }
 }
 
 extension InlineString16Tests {
