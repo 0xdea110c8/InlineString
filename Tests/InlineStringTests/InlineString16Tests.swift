@@ -353,7 +353,7 @@ struct InlineString16Tests {
         await #expect(processExitsWith: .failure) {
             var inlineString = InlineString16()
             let utf8 = TestData.heapAllocatedString.utf8
-            inlineString._copyUTF8Bytes(from: utf8, count: utf8.count)
+            inlineString._copyUTF8Bytes(from: utf8)
         }
     }
 #endif // os(macOS)
