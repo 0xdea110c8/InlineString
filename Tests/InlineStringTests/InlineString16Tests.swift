@@ -348,7 +348,7 @@ struct InlineString16Tests {
 #if os(macOS)
     // NOTE: This test intentionally terminates the current process and should only be run on macOS.
     @Test
-    func `_copyUTF8Bytes(from:to:) traps for a heap-allocated string`() async {
+    func `_copyUTF8Bytes(from:) traps for a heap-allocated string`() async {
         // then
         await #expect(processExitsWith: .failure) {
             var inlineString = InlineString16()
@@ -357,6 +357,60 @@ struct InlineString16Tests {
         }
     }
 #endif // os(macOS)
+    
+    @Test(
+        arguments: [
+            TestData.stringFitsCapacity,
+            "abc123",
+            "London",
+            "Текст",
+            "USA 🇺🇸"
+        ]
+    )
+    func `_copyUTF8Bytes(from:) stores a small string`(
+        _ string: String
+    ) {
+        // given
+        var inlineString = InlineString16()
+        // when
+        inlineString._copyUTF8Bytes(from: string.utf8)
+        // then
+        #expect(inlineString.string.utf8.prefix(string.utf8.count).elementsEqual(string.utf8))
+    }
+    
+#if os(macOS)
+    // NOTE: This test intentionally terminates the current process and should only be run on macOS.
+    @Test
+    func `_copyStringContent(from:) traps for strings other than 16 UTF-8 bytes`() async {
+        // then
+        await #expect(processExitsWith: .failure) {
+            var inlineString = InlineString16()
+            let string = TestData.stringFitsCapacity
+            inlineString._copyStringContent(from: string)
+        }
+        await #expect(processExitsWith: .failure) {
+            var inlineString = InlineString16()
+            let string = TestData.stringExceedingCapacity
+            inlineString._copyStringContent(from: string)
+        }
+    }
+#endif // os(macOS)
+    
+    @Test(
+        arguments: [
+            TestData.stringEqualsCapacity
+        ]
+    )
+    func `_copyStringContent(from:) stores content from an exactly 16-byte UTF-8 string`(
+        _ string: String
+    ) {
+        // given
+        var inlineString = InlineString16()
+        // when
+        inlineString._copyStringContent(from: string)
+        // then
+        #expect(inlineString.string.utf8.elementsEqual(string.utf8))
+    }
 }
 
 extension InlineString16Tests {
