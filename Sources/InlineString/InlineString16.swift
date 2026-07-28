@@ -145,7 +145,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         
         switch utf8Count {
         case 0..<16:
-            _copyUTF8Bytes(from: utf8, count: utf8Count)
+            _copyUTF8Bytes(from: utf8)
         case 16:
             _copyStringContent(from: string)
         default:
@@ -164,7 +164,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// - Parameters:
     ///   - utf8: A UTF-8 view containing the bytes to copy.
     ///   - storage: The destination storage tuple.
-    mutating func _copyUTF8Bytes(from utf8: String.UTF8View, count: Int) {
+    mutating func _copyUTF8Bytes(from utf8: String.UTF8View) {
         precondition(utf8.count <= 15, "String must fit within small string capacity.")
         
         withUnsafeBytes(of: utf8) { stringBuffer in

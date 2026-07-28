@@ -348,15 +348,171 @@ struct InlineString16Tests {
 #if os(macOS)
     // NOTE: This test intentionally terminates the current process and should only be run on macOS.
     @Test
-    func `_copyUTF8Bytes(from:to:) traps for a heap-allocated string`() async {
+    func `_copyUTF8Bytes(from:) traps for a heap-allocated string`() async {
         // then
         await #expect(processExitsWith: .failure) {
             var inlineString = InlineString16()
             let utf8 = TestData.heapAllocatedString.utf8
-            inlineString._copyUTF8Bytes(from: utf8, count: utf8.count)
+            inlineString._copyUTF8Bytes(from: utf8)
         }
     }
 #endif // os(macOS)
+    
+    @Test(
+        arguments: [
+            TestData.stringFitsCapacity,
+            "abc123",
+            "London",
+            "Текст",
+            "USA 🇺🇸"
+        ]
+    )
+    func `_copyUTF8Bytes(from:) stores a small string`(
+        _ string: String
+    ) {
+        // given
+        var inlineString = InlineString16()
+        // when
+        inlineString._copyUTF8Bytes(from: string.utf8)
+        // then
+        #expect(inlineString.string.utf8.prefix(string.utf8.count).elementsEqual(string.utf8))
+    }
+    
+#if os(macOS)
+    // NOTE: This test intentionally terminates the current process and should only be run on macOS.
+    @Test
+    func `_copyStringContent(from:) traps for strings other than 16 UTF-8 bytes`() async {
+        // then
+        await #expect(processExitsWith: .failure) {
+            var inlineString = InlineString16()
+            let string = TestData.stringFitsCapacity
+            inlineString._copyStringContent(from: string)
+        }
+        await #expect(processExitsWith: .failure) {
+            var inlineString = InlineString16()
+            let string = TestData.stringExceedingCapacity
+            inlineString._copyStringContent(from: string)
+        }
+    }
+#endif // os(macOS)
+    
+    @Test(
+        arguments: [
+            TestData.stringEqualsCapacity
+        ]
+    )
+    func `_copyStringContent(from:) stores content from an exactly 16-byte UTF-8 string`(
+        _ string: String
+    ) {
+        // given
+        var inlineString = InlineString16()
+        // when
+        inlineString._copyStringContent(from: string)
+        // then
+        #expect(inlineString.string.utf8.elementsEqual(string.utf8))
+    }
+    
+#if os(macOS)
+    // NOTE: This test intentionally terminates the current process and should only be run on macOS.
+    @Test
+    func `_onExceedingCapacity(validating:) traps if validation disabled`() async {
+        // then
+        await #expect(processExitsWith: .failure) {
+            let inlineString = InlineString16()
+            let _ = inlineString._onExceedingCapacity(validating: false)
+        }
+    }
+#endif // os(macOS)
+    
+    @Test
+    func `_onExceedingCapacity(validating:) returns false if validation enabled`() {
+        // given
+        let inlineString = InlineString16()
+        // when
+        let result = inlineString._onExceedingCapacity(validating: true)
+        // then
+        #expect(result == false)
+    }
+    
+#if os(macOS)
+    // NOTE: This test intentionally terminates the current process and should only be run on macOS.
+    @Test
+    func `init(stringLiteral:) traps when string exceeds the capacity`() async {
+        // then
+        await #expect(processExitsWith: .failure) {
+            let _ = InlineString16("12345678901234567890")
+        }
+    }
+#endif // os(macOS)
+    
+    @Test
+    func `init(stringLiteral:) produces the same inline string as init(_:)`() {
+        // given
+        let inlineString = InlineString16("1234567890")
+        let inlineStringFromLiteral: InlineString16 = "1234567890"
+        // then
+        #expect(inlineString == inlineStringFromLiteral)
+    }
+    
+    @Test(
+        arguments: [
+            TestData.stringFitsCapacity,
+            "abc123",
+            "London",
+            "Текст",
+            "USA 🇺🇸"
+        ]
+    )
+    func `== returns true for identical inline strings`(_ string: String) {
+        // given
+        let lhs = InlineString16(string)
+        let rhs = InlineString16(string)
+        // then
+        #expect(lhs == rhs)
+    }
+    
+    @Test
+    func `== returns true for two empty inline strings`() {
+        // given
+        let lhs = InlineString16()
+        let rhs = InlineString16()
+        // then
+        #expect(lhs == rhs)
+    }
+    
+    @Test
+    func `== returns false for strings with different lengths"`() {
+        // given
+        let lhs = InlineString16(TestData.stringFitsCapacity)
+        let rhs = InlineString16(TestData.stringEqualsCapacity)
+        // then
+        #expect(lhs != rhs)
+    }
+    
+    @Test
+    func `== returns false for different inline strings`() {
+        // given
+        let lhs = InlineString16(TestData.stringFitsCapacity)
+        let rhs = InlineString16(TestData.anotherStringFitsCapacity)
+        // then
+        #expect(lhs != rhs)
+    }
+    
+    @Test
+    func `description returns the string representation`() {
+        // given
+        let inlineString = InlineString16(TestData.stringFitsCapacity)
+        // then
+        #expect(String(describing: inlineString) == TestData.stringFitsCapacity)
+    }
+    
+    @Test
+    func `debugDescription returns the expected representation`() {
+        // given
+        let inlineString = InlineString16(TestData.stringFitsCapacity)
+        // then
+        #expect(String(reflecting: inlineString) == "InlineString16(\"\(TestData.stringFitsCapacity)\")")
+    }
 }
 
 extension InlineString16Tests {
@@ -366,6 +522,7 @@ extension InlineString16Tests {
         }
         
         static let stringFitsCapacity: String = "1234567890"
+        static let anotherStringFitsCapacity: String = "0123456789"
         static let stringEqualsCapacity: String = "1234567890123456"
         static let stringExceedingCapacity: String = "12345678901234567890"
         static let emptyString: String = ""
@@ -373,47 +530,6 @@ extension InlineString16Tests {
         static let heapAllocatedString = "1234567890123456"
     }
 }
-//
-//    @Test("description returns the string representation")
-//    func descriptionReturnsStringRepresentation() {
-//        // given
-//        let inlineString = InlineString16(truncating: TestData.string)
-//        // then
-//        #expect(String(describing: inlineString) == TestData.string)
-//    }
-//    
-//    @Test("debugDescription returns the expected representation")
-//    func debugDescriptionReturnsExpectedRepresentation() {
-//        // given
-//        let inlineString = InlineString16(truncating: TestData.string)
-//        // then
-//        #expect(String(reflecting: inlineString) == "InlineString16(\"\(TestData.string)\")")
-//    }
-//    
-//    @Test("init(from:) succeeds and stores full string when it fits capacity")
-//    func decodingStoresFullStringWhenFits() throws {
-//        // when
-//        let inlineString = try JSONDecoder().decode(InlineString16.self, from: TestData.dataFitsCapacity)
-//        // then
-//        #expect(inlineString.count == TestData.stringFitsCapacity.utf8.count)
-//        withUnsafeBytes(of: inlineString._storage) { bytes in
-//            let stored = Array(bytes.prefix(inlineString.count))
-//            #expect(stored == Array(TestData.stringFitsCapacity.utf8))
-//        }
-//    }
-//    
-//    @Test("init(from:) fails when source exceeds capacity")
-//    func decodingFailsWhenTooLong() throws {
-//        // given
-//        let dataExceedsCapacity = TestData.dataExceedsCapacity
-//        // when
-//        do {
-//            _ = try JSONDecoder().decode(InlineString16.self, from: dataExceedsCapacity)
-//        } catch _ as InlineString16.InlineString16Error {
-//            // then
-//            #expect(true)
-//        }
-//    }
 //    
 //    @available(iOS 26.0, *)
 //    @Test("encode(to:) encodes the string")
@@ -424,49 +540,4 @@ extension InlineString16Tests {
 //        let data = try JSONEncoder().encode(inlineString)
 //        // then
 //        #expect(data == TestData.dataFitsCapacity)
-//    }
-//    
-//    @Test("== returns false when strings have different counts")
-//    func equalityReturnsFalseForDifferentCounts() {
-//        // given
-//        let lhs = InlineString16(truncating: TestData.string)
-//        let rhs = InlineString16(truncating: TestData.anotherString)
-//        // then
-//        #expect(lhs != rhs)
-//    }
-//    
-//    @Test("== returns true when both strings are empty")
-//    func equalityReturnsTrueForBothEmpty() {
-//        // given
-//        let lhs = InlineString16()
-//        let rhs = InlineString16()
-//        // then
-//        #expect(lhs == rhs)
-//    }
-//    
-//    @Test("== returns true when strings have same count and bytes")
-//    func equalityReturnsTrueForSameContents() {
-//        // given
-//        let lhs = InlineString16(truncating: TestData.string)
-//        let rhs = InlineString16(truncating: TestData.string)
-//        // then
-//        #expect(lhs == rhs)
-//    }
-//    
-//    @Test("== returns false when strings have same count but different bytes")
-//    func equalityReturnsFalseForDifferentValues() {
-//        // given
-//        let lhs = InlineString16(truncating: TestData.string)
-//        let rhs = InlineString16(truncating: TestData.stringWithSameCount)
-//        // then
-//        #expect(lhs != rhs)
-//    }
-//    
-//    @Test("init(stringLiteral:) produces the same inline string as init(truncating:)")
-//    func stringLiteralMatchesStringInitializer() {
-//        // given
-//        let fromLiteral: InlineString16 = "Hello, world!"
-//        let fromString = InlineString16(truncating: "Hello, world!")
-//        // then
-//        #expect(fromLiteral == fromString)
 //    }
