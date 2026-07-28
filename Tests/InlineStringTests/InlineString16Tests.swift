@@ -5,32 +5,29 @@ import Testing
 struct InlineString16Tests {
     
     @Test(
-        "canStore(_:) returns true when the string fits within the capacity",
         arguments: [
             TestData.stringFitsCapacity,
             TestData.stringEqualsCapacity,
             "12345678"
         ]
     )
-    func canStoreReturnsTrueForStringSmallerThanCapacity(_ string: String) {
+    func `canStore(_:) returns true when the string fits within the capacity`(_ string: String) {
         // then
         #expect(InlineString16.canStore(string))
     }
     
     @Test(
-        "canStore(_:) returns false when the string exceeds the capacity",
         arguments: [
             TestData.stringExceedingCapacity,
             "12345678901234567890"
         ]
     )
-    func canStoreReturnsFalseForStringLargerThanCapacity(_ string: String) {
+    func `canStore(_:) returns false when the string exceeds the capacity`(_ string: String) {
         // then
         #expect(!InlineString16.canStore(string))
     }
     
     @Test(
-        "capacity matches type constant",
         arguments: [
             InlineString16(),
             InlineString16(TestData.stringFitsCapacity),
@@ -38,67 +35,62 @@ struct InlineString16Tests {
             "1234567890"
         ]
     )
-    func capacityEqualsGenericParameter(_ inlineString: InlineString16) {
+    func `capacity matches type constant`(_ inlineString: InlineString16) {
         // then
         #expect(inlineString.capacity == InlineString16.Constant.capacity)
     }
     
     @Test(
-        "count uses the last byte of the lower word as metadata below capacity",
         arguments: [
             InlineString16(TestData.stringFitsCapacity),
             InlineString16(validating: TestData.stringFitsCapacity)!,
             "1234567890"
         ]
     )
-    func countReturnsLastByteForDataSmallerThanCapacity(_ inlineString: InlineString16) {
+    func `count uses the last byte of the lower word as metadata below capacity`(_ inlineString: InlineString16) {
         // then
         #expect(inlineString.count == UInt8(truncatingIfNeeded: inlineString.low))
     }
     
     @Test(
-        "count uses capacity when storage is fully occupied",
         arguments: [
             InlineString16(TestData.stringEqualsCapacity),
             InlineString16(validating: TestData.stringEqualsCapacity)!,
             "1234567890123456"
         ]
     )
-    func countReturnsCapacityForExactCapacity(_ inlineString: InlineString16) {
+    func `count uses capacity when storage is fully occupied`(_ inlineString: InlineString16) {
         // then
         #expect(inlineString.count != UInt8(truncatingIfNeeded: inlineString.low))
         #expect(inlineString.count == inlineString.capacity)
     }
     
     @Test(
-        "isEmpty returns true when the count is zero",
         arguments: [
             InlineString16(),
             InlineString16(TestData.emptyString),
             ""
         ]
     )
-    func isEmptyReturnsTrueWhenCountIsZero(_ inlineString: InlineString16) {
+    func `isEmpty returns true when the count is zero`(_ inlineString: InlineString16) {
         // then
         #expect(inlineString.count == 0)
         #expect(inlineString.isEmpty)
     }
     
     @Test(
-        "isEmpty returns false when the count is not zero",
         arguments: [
             InlineString16(TestData.nonEmptyString),
             "1234567890"
         ]
     )
-    func isEmptyReturnsFalseWhenCountIsNotZero(_ inlineString: InlineString16) {
+    func `isEmpty returns false when the count is not zero`(_ inlineString: InlineString16) {
         // then
         #expect(inlineString.count != 0)
         #expect(!inlineString.isEmpty)
     }
     
     @Test(
-        "string matches the decoded UTF-8 bytes",
         arguments: [
             InlineString16(),
             InlineString16(TestData.stringFitsCapacity),
@@ -112,7 +104,7 @@ struct InlineString16Tests {
             "USA 🇺🇸"
         ]
     )
-    func stringMatchesDecodedUTF8(_ inlineString: InlineString16) {
+    func `string matches the decoded UTF-8 bytes`(_ inlineString: InlineString16) {
         // given
         let storage = (inlineString.high.bigEndian, inlineString.low.bigEndian)
         let decodedUTF8 = withUnsafeBytes(of: storage) { buffer in
@@ -123,8 +115,8 @@ struct InlineString16Tests {
         #expect(inlineString.string == decodedUTF8)
     }
     
-    @Test("init() creates empty inline string with zeroed storage")
-    func initCreatesZeroedStorage() {
+    @Test
+    func `init() creates empty inline string with zeroed storage`() {
         // given
         let inlineString = InlineString16()
         // then
