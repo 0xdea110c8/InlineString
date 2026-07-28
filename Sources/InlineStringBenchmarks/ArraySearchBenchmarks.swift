@@ -17,7 +17,6 @@ fileprivate nonisolated(unsafe) var stringValues: [String] = [
     "Moscow"
 ]
 
-
 let arraySearchComparison = BenchmarkSuite(name: "array-search") { suite in
     suite.benchmark("string") {
         var found = false
