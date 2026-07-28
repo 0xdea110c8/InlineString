@@ -156,6 +156,34 @@ struct InlineString16Tests {
         #expect(inlineString.count == string.utf8.count)
         #expect(inlineString.string == string)
     }
+    
+    @Test
+    func `init(validating:) fails when string exceeds the capacity`() {
+        // given
+        let inlineString = InlineString16(validating: TestData.stringExceedingCapacity)
+        // then
+        #expect(inlineString == nil)
+    }
+    
+    @Test(
+        arguments: [
+            TestData.stringFitsCapacity,
+            TestData.stringEqualsCapacity,
+            TestData.emptyString,
+            "",
+            "abc123",
+            "London",
+            "Текст",
+            "USA 🇺🇸"
+        ]
+    )
+    func `init(validating:) stores a string when it fits within the capacity`(_ string: String) {
+        // given
+        let inlineString = InlineString16(validating: string)
+        // then
+        #expect(inlineString?.count == string.utf8.count)
+        #expect(inlineString?.string == string)
+    }
 }
 
 extension InlineString16Tests {
@@ -167,118 +195,7 @@ extension InlineString16Tests {
         static let nonEmptyString: String = "12345678"
     }
 }
-//
-//    @Test("init(truncating:) stores full string when it fits capacity")
-//    func truncatingInitStoresFullStringWhenFits() {
-//        // given
-//        let inlineString = InlineString16(truncating: TestData.stringFitsCapacity)
-//        // then
-//        #expect(inlineString.count == TestData.stringFitsCapacity.utf8.count)
-//        withUnsafeBytes(of: inlineString._storage) { bytes in
-//            let stored = Array(bytes.prefix(inlineString.count))
-//            #expect(stored == Array(TestData.stringFitsCapacity.utf8))
-//        }
-//    }
-//    
-//    @Test("init(truncating:) truncates to capacity when source is too long")
-//    func truncatingInitTruncatesWhenTooLong() {
-//        // given
-//        let inlineString = InlineString16(truncating: TestData.stringExceedsCapacity)
-//        let expectedPrefixBytes = Array(TestData.stringExceedsCapacity.utf8.prefix(InlineString16.capacity))
-//        // then
-//        #expect(inlineString.count == InlineString16.capacity)
-//        withUnsafeBytes(of: inlineString._storage) { bytes in
-//            let stored = Array(bytes.prefix(inlineString.count))
-//            #expect(stored == expectedPrefixBytes)
-//        }
-//    }
-//    
-//    @Test("append(_:) returns true and updates the inline string when string fits remaining capacity")
-//    func appendReturnsTrueWhenStringFitsCapacity() {
-//        // given
-//        var inlineString = InlineString16()
-//        // when
-//        let result = inlineString.append(TestData.stringFitsCapacity)
-//        // then
-//        #expect(result == true)
-//        #expect(inlineString.count == TestData.stringFitsCapacity.utf8.count)
-//        withUnsafeBytes(of: inlineString._storage) { bytes in
-//            let storedBytes = bytes.prefix(inlineString.count)
-//            #expect(Array(storedBytes) == Array(TestData.stringFitsCapacity.utf8))
-//        }
-//    }
-//    
-//    @Test("append(_:) returns false and does not mutate when string exceeds remaining capacity")
-//    func appendReturnsFalseWhenStringExceedsCapacity() {
-//        // given
-//        var inlineString = InlineString16()
-//        // when
-//        let result = inlineString.append(TestData.stringExceedsCapacity)
-//        // then
-//        #expect(result == false)
-//        #expect(inlineString.count == 0)
-//        withUnsafeBytes(of: inlineString._storage) { bytes in
-//            #expect(bytes.count == InlineString16.capacity)
-//            #expect(bytes.allSatisfy { $0 == 0 })
-//        }
-//    }
-//    
-//    @Test("append(truncating:) adds nothing and returns zero when no remaining capacity")
-//    func appendTruncatingReturnsZeroWhenNoCapacity() {
-//        // given
-//        var inlineString = InlineString16()
-//        inlineString.append(TestData.stringFitsCapacity)
-//        let remainingCapacity = inlineString.remainingCapacity
-//        // when
-//        let result = inlineString.append(truncating: TestData.string)
-//        // then
-//        withUnsafeBytes(of: inlineString._storage) { bytes in
-//            let stored = Array(bytes.prefix(inlineString.count))
-//            #expect(stored == Array(TestData.stringFitsCapacity.utf8))
-//        }
-//        #expect(remainingCapacity == 0)
-//        #expect(result == remainingCapacity)
-//    }
-//    
-//    @Test("append(truncating:) returns full length and appends all bytes when input fits remaining capacity")
-//    func appendTruncatingAppendsAllWhenFits() {
-//        // given
-//        var inlineString = InlineString16()
-//        let remainingCapacity = inlineString.remainingCapacity
-//        // when
-//        let result = inlineString.append(truncating: TestData.stringFitsCapacity)
-//        // then
-//        withUnsafeBytes(of: inlineString._storage) { bytes in
-//            let stored = Array(bytes.prefix(inlineString.count))
-//            #expect(stored == Array(TestData.stringFitsCapacity.utf8))
-//        }
-//        #expect(result == remainingCapacity)
-//    }
-//
-//    @Test("append(truncating:) truncates to remaining capacity and returns appended bytes count when input is too long")
-//    func appendTruncatingTruncatesWhenTooLong() {
-//        // given
-//        var inlineString = InlineString16()
-//        let remainingCapacity = inlineString.remainingCapacity
-//        // when
-//        let result = inlineString.append(truncating: TestData.stringExceedsCapacity)
-//        // then
-//        withUnsafeBytes(of: inlineString._storage) { bytes in
-//            let stored = Array(bytes.prefix(inlineString.count))
-//            #expect(stored == Array(TestData.stringExceedsCapacity.prefix(remainingCapacity).utf8))
-//        }
-//        #expect(result == remainingCapacity)
-//    }
-//    
-//    @Test("clear() sets the count to zero")
-//    func clearSetsTheCountToZero() {
-//        // given
-//        var inlineString = InlineString16(truncating: TestData.string)
-//        // when
-//        inlineString.clear()
-//        // then
-//        #expect(inlineString.count == 0)
-//    }
+
 //    
 //    @Test("withUTF8(_:) passes a buffer matching stored bytes and count")
 //    func withUTF8PassesMatchingBuffer() {
