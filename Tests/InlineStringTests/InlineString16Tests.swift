@@ -10,7 +10,12 @@ struct InlineString16Tests {
         arguments: [
             TestData.stringFitsCapacity,
             TestData.stringEqualsCapacity,
-            "12345678"
+            TestData.emptyString,
+            "",
+            "abc123",
+            "London",
+            "Текст",
+            "USA 🇺🇸"
         ]
     )
     func `canStore(_:) returns true when the string fits within the capacity`(_ string: String) {
@@ -184,10 +189,64 @@ struct InlineString16Tests {
         #expect(inlineString?.count == string.utf8.count)
         #expect(inlineString?.string == string)
     }
+    
+    @Test(
+        arguments: [
+            InlineString16(TestData.stringFitsCapacity),
+            InlineString16(TestData.stringEqualsCapacity),
+            InlineString16(TestData.emptyString),
+            "",
+            "abc123",
+            "London",
+            "Текст",
+            "USA 🇺🇸"
+        ]
+    )
+    func `withUnsafeUTF8Bytes(_:) passes a buffer matching stored bytes and count`(_ inlineString: InlineString16) {
+        // given
+        let storage = (inlineString.high.bigEndian, inlineString.low.bigEndian)
+        // when
+        inlineString.withUnsafeUTF8Bytes { buffer in
+            let stored = withUnsafeBytes(of: storage) { bytes in
+                Array(bytes.prefix(inlineString.count))
+            }
+            // then
+            #expect(buffer.count == inlineString.count)
+            #expect(Array(buffer) == stored)
+        }
+    }
+    
+    @Test(
+        arguments: [
+            InlineString16(TestData.stringFitsCapacity),
+            InlineString16(TestData.stringEqualsCapacity),
+            InlineString16(TestData.emptyString),
+            "",
+            "abc123",
+            "London",
+            "Текст",
+            "USA 🇺🇸"
+        ]
+    )
+    func `withUnsafeUTF8Bytes(_:) rethrows errors from the closure`(_ inlineString: InlineString16) {
+        // when
+        do {
+            _ = try inlineString.withUnsafeUTF8Bytes { _ in
+                throw TestData.TestError.withUTF8Error
+            }
+        } catch {
+            // then
+            #expect(error is TestData.TestError)
+        }
+    }
 }
 
 extension InlineString16Tests {
     private enum TestData {
+        enum TestError: Error {
+            case withUTF8Error
+        }
+        
         static let stringFitsCapacity: String = "1234567890"
         static let stringEqualsCapacity: String = "1234567890123456"
         static let stringExceedingCapacity: String = "12345678901234567890"
@@ -195,38 +254,7 @@ extension InlineString16Tests {
         static let nonEmptyString: String = "12345678"
     }
 }
-
-//    
-//    @Test("withUTF8(_:) passes a buffer matching stored bytes and count")
-//    func withUTF8PassesMatchingBuffer() {
-//        // given
-//        let inlineString = InlineString16(truncating: TestData.string)
-//        // when
-//        inlineString.withUTF8 { buffer in
-//            let stored = withUnsafeBytes(of: inlineString._storage) { bytes in
-//                Array(bytes.prefix(inlineString.count))
-//            }
-//            // then
-//            #expect(buffer.count == inlineString.count)
-//            #expect(Array(buffer) == stored)
-//        }
-//    }
-//    
-//    @Test("withUTF8(_:) rethrows errors from the closure")
-//    func withUTF8RethrowsErrors() {
-//        // given
-//        let inlineString = InlineString16(truncating: TestData.string)
-//        // when
-//        do {
-//            _ = try inlineString.withUTF8 { _ in
-//                throw TestData.TestError.withUTF8Error
-//            }
-//        } catch {
-//            // then
-//            #expect(error is TestData.TestError)
-//        }
-//    }
-//    
+//
 //    @Test("description returns the string representation")
 //    func descriptionReturnsStringRepresentation() {
 //        // given
