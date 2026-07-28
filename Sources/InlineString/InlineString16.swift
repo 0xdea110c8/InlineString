@@ -264,6 +264,16 @@ extension InlineString16: Equatable {
     }
 }
 
+// MARK: - Hashable
+
+extension InlineString16: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(count)
+        hasher.combine(high)
+        hasher.combine(low)
+    }
+}
+
 // MARK: - Codable
 
 extension InlineString16: Codable {
