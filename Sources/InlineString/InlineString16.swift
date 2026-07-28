@@ -264,6 +264,36 @@ extension InlineString16: Equatable {
     }
 }
 
+// MARK: - Codable
+
+extension InlineString16: Codable {
+    /// Creates an instance by decoding a string.
+    /// - Parameter decoder: The decoder to read from.
+    /// - Throws: A decoding error if the decoded string exceeds ``capacity`` bytes.
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let string = try container.decode(String.self)
+        
+        self.init()
+        
+        guard _initialize(from: string, validating: true) else {
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "String exceeds InlineString16 capacity."
+            )
+        }
+    }
+    
+    /// Encodes this value as a single string.
+    /// - Parameter encoder: The encoder to write to.
+    /// - Throws: An error if encoding fails.
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(string)
+    }
+}
+
+
 // MARK: - CustomStringConvertible
 
 extension InlineString16: CustomStringConvertible {
@@ -281,7 +311,6 @@ extension InlineString16: CustomDebugStringConvertible {
         "InlineString16(\"\(string)\")"
     }
 }
-
 //
 //// MARK: - Decodable
 //
