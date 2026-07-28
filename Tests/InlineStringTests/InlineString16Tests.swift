@@ -2,8 +2,10 @@ import Foundation
 import Testing
 @testable import InlineString
 
+// NOTE:
+// This test suite contains exit tests.
+// These tests should only be run on macOS.
 struct InlineString16Tests {
-    
     @Test(
         arguments: [
             TestData.stringFitsCapacity,
@@ -122,6 +124,37 @@ struct InlineString16Tests {
         // then
         #expect(inlineString.high == 0)
         #expect(inlineString.low == 0)
+    }
+    
+#if os(macOS)
+    // NOTE: This test intentionally terminates the current process and should only be run on macOS.
+    @Test
+    func `init(_:) traps when string exceeds the capacity`() async {
+        // then
+        await #expect(processExitsWith: .failure) {
+            let _ = InlineString16(TestData.stringExceedingCapacity)
+        }
+    }
+#endif // os(macOS)
+    
+    @Test(
+        arguments: [
+            TestData.stringFitsCapacity,
+            TestData.stringEqualsCapacity,
+            TestData.emptyString,
+            "",
+            "abc123",
+            "London",
+            "Текст",
+            "USA 🇺🇸"
+        ]
+    )
+    func `init(_:) stores a string when it fits within the capacity`(_ string: String) {
+        // given
+        let inlineString = InlineString16(string)
+        // then
+        #expect(inlineString.count == string.utf8.count)
+        #expect(inlineString.string == string)
     }
 }
 
