@@ -4,83 +4,106 @@ import Testing
 
 struct InlineString16Tests {
     
-    @Test("canStore(_:) returns whether the given string fits within the capacity")
-    func canStoreReturnsTrueForStringSmallerThanCapacity() {
+    @Test(
+        "canStore(_:) returns true when the string fits within the capacity",
+        arguments: [
+            TestData.stringFitsCapacity,
+            TestData.stringEqualsCapacity,
+            "12345678"
+        ]
+    )
+    func canStoreReturnsTrueForStringSmallerThanCapacity(_ string: String) {
         // then
-        #expect(InlineString16.canStore(TestData.stringFitsCapacity))
-        #expect(InlineString16.canStore(TestData.stringEqualsCapacity))
-        #expect(!InlineString16.canStore(TestData.stringExceedingCapacity))
+        #expect(InlineString16.canStore(string))
     }
     
-    @Test("capacity matches type constant")
-    func capacityEqualsGenericParameter() {
-        // given
-        let inlineString = InlineString16()
-        let secondInlineString = InlineString16(TestData.stringFitsCapacity)
-        let thirdInlineString = InlineString16(TestData.stringEqualsCapacity)
-        let fourthInlineString: InlineString16 = "1234567890"
+    @Test(
+        "canStore(_:) returns false when the string exceeds the capacity",
+        arguments: [
+            TestData.stringExceedingCapacity,
+            "12345678901234567890"
+        ]
+    )
+    func canStoreReturnsFalseForStringLargerThanCapacity(_ string: String) {
+        #expect(!InlineString16.canStore(string))
+    }
+    
+    @Test(
+        "capacity matches type constant",
+        arguments: [
+            InlineString16(),
+            InlineString16(TestData.stringFitsCapacity),
+            InlineString16(TestData.stringEqualsCapacity),
+            "1234567890"
+        ]
+    )
+    func capacityEqualsGenericParameter(_ inlineString: InlineString16) {
         // then
         #expect(inlineString.capacity == InlineString16.Constant.capacity)
-        #expect(secondInlineString.capacity == InlineString16.Constant.capacity)
-        #expect(thirdInlineString.capacity == InlineString16.Constant.capacity)
-        #expect(fourthInlineString.capacity == InlineString16.Constant.capacity)
     }
     
-    @Test("count uses the last byte of the lower word as metadata below capacity")
-    func countReturnsLastByteForDataSmallerThanCapacity() {
-        // given
-        let inlineString = InlineString16(TestData.stringFitsCapacity)
-        let secondInlineString = InlineString16(validating: TestData.stringFitsCapacity)!
-        let thirdInlineString: InlineString16 = "1234567890"
+    @Test(
+        "count uses the last byte of the lower word as metadata below capacity",
+        arguments: [
+            InlineString16(TestData.stringFitsCapacity),
+            InlineString16(validating: TestData.stringFitsCapacity)!,
+            "1234567890"
+        ]
+    )
+    func countReturnsLastByteForDataSmallerThanCapacity(_ inlineString: InlineString16) {
         // then
         #expect(inlineString.count == UInt8(truncatingIfNeeded: inlineString.low))
-        #expect(secondInlineString.count == UInt8(truncatingIfNeeded: secondInlineString.low))
-        #expect(thirdInlineString.count == UInt8(truncatingIfNeeded: thirdInlineString.low))
     }
     
-    @Test("count uses capacity when storage is fully occupied")
-    func countReturnsCapacityForExactCapacity() {
-        // given
-        let inlineString = InlineString16(TestData.stringEqualsCapacity)
-        let secondInlineString = InlineString16(validating: TestData.stringEqualsCapacity)!
-        let thirdInlineString: InlineString16 = "1234567890123456"
+    @Test(
+        "count uses capacity when storage is fully occupied",
+        arguments: [
+            InlineString16(TestData.stringEqualsCapacity),
+            InlineString16(validating: TestData.stringEqualsCapacity)!,
+            "1234567890123456"
+        ]
+    )
+    func countReturnsCapacityForExactCapacity(_ inlineString: InlineString16) {
         // then
         #expect(inlineString.count != UInt8(truncatingIfNeeded: inlineString.low))
         #expect(inlineString.count == inlineString.capacity)
-        #expect(secondInlineString.count != UInt8(truncatingIfNeeded: secondInlineString.low))
-        #expect(secondInlineString.count == secondInlineString.capacity)
-        #expect(inlineString.count != UInt8(truncatingIfNeeded: inlineString.low))
-        #expect(thirdInlineString.count == thirdInlineString.capacity)
-        
+    }
+    
+    @Test(
+        "isEmpty returns true when the count is zero",
+        arguments: [
+            InlineString16(),
+            InlineString16(TestData.emptyString),
+            ""
+        ]
+    )
+    func isEmptyReturnsTrueWhenCountIsZero(_ inlineString: InlineString16) {
+        // then
+        #expect(inlineString.count == 0)
+        #expect(inlineString.isEmpty)
+    }
+    
+    @Test(
+        "isEmpty returns false when the count is not zero",
+        arguments: [
+            InlineString16(TestData.nonEmptyString),
+            "1234567890"
+        ]
+    )
+    func isEmptyReturnsFalseWhenCountIsNotZero(_ inlineString: InlineString16) {
+        // then
+        #expect(inlineString.count != 0)
+        #expect(!inlineString.isEmpty)
     }
     
     private enum TestData {
         static let stringFitsCapacity: String = "1234567890"
         static let stringEqualsCapacity: String = "1234567890123456"
         static let stringExceedingCapacity: String = "12345678901234567890"
+        static let emptyString: String = ""
+        static let nonEmptyString: String = "12345678"
     }
 }
-//    
-//    @Test("isEmpty reflects whether the count is zero")
-//    func isEmptyReflectsCountIsZero() {
-//        // given
-//        let inlineString = InlineString16(truncating: TestData.string)
-//        let emptyInlineString = InlineString16()
-//        // then
-//        #expect(inlineString.count != 0)
-//        #expect(!inlineString.isEmpty)
-//        #expect(emptyInlineString.count == 0)
-//        #expect(emptyInlineString.isEmpty)
-//    }
-//    
-//    @Test("remainingCapacity reflects remaining space in bytes")
-//    func remainingCapacityReflectsRemainingSpace() {
-//        // given
-//        let inlineString = InlineString16()
-//        // then
-//        #expect(inlineString.remainingCapacity == inlineString.capacity - inlineString.count)
-//            
-//    }
 //    
 //    @Test("string matches the decoded UTF-8 bytes")
 //    func stringMatchesDecodedUTF8() {
