@@ -25,6 +25,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         static let highLastByteIndex = wordByteCapacity - 1
         /// Index of the last addressable byte within the combined 16-byte storage.
         static let lowLastByteIndex = capacity - 1
+        static let smallStringSize = 15
     }
     
     // MARK: - Static methods
@@ -156,20 +157,15 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         
         let utf8 = string.utf8
         let utf8Count = utf8.count
-        var storage: (UInt64, UInt64) = (0, 0)
         
         switch utf8Count {
         case 0..<Constant.capacity:
-            _copyUTF8Bytes(from: utf8, to: &storage)
+            _copyUTF8Bytes(from: utf8)
         case Constant.capacity:
-            _copyStringContent(from: string, to: &storage)
+            _copyStringContent(from: string)
         default:
             return _onExceedingCapacity(validating: validating)
         }
-        
-        high = storage.0.bigEndian
-        low = storage.1.bigEndian
-        count = utf8Count
         
         return true
     }
@@ -182,12 +178,29 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// - Parameters:
     ///   - utf8: A UTF-8 view containing the bytes to copy.
     ///   - storage: The destination storage tuple.
-    mutating func _copyUTF8Bytes(from utf8: String.UTF8View, to storage: inout (UInt64, UInt64)) {
+    mutating func _copyUTF8Bytes(from utf8: String.UTF8View) {
+        precondition(utf8.count <= Constant.smallStringSize, "String must fit within small string capacity.")
+        
         withUnsafeBytes(of: utf8) { stringBuffer in
-            withUnsafeMutableBytes(of: &storage) { storageBuffer in
-                let destination = UnsafeMutableRawBufferPointer(rebasing: storageBuffer[..<utf8.count])
-                destination.copyMemory(from: UnsafeRawBufferPointer(rebasing: stringBuffer[..<utf8.count]))
+            withUnsafeMutableBytes(of: &low) { lowBuffer in
+                withUnsafeMutableBytes(of: &high) { highBuffer in
+                    lowBuffer.copyMemory(
+                        from: UnsafeRawBufferPointer(
+                            rebasing: stringBuffer[..<min(Constant.wordByteCapacity, stringBuffer.count)]
+                        )
+                    )
+                    
+                    if stringBuffer.count > Constant.wordByteCapacity {
+                        highBuffer.copyMemory(
+                            from: UnsafeRawBufferPointer(
+                                rebasing: stringBuffer[Constant.wordByteCapacity..<stringBuffer.count]
+                            )
+                        )
+                    }
+                }
             }
+            
+            count = stringBuffer.count
         }
     }
     
@@ -199,12 +212,30 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// - Parameters:
     ///   - string: The source string.
     ///   - storage: The destination storage tuple.
-    mutating func _copyStringContent(from string: String, to storage: inout (UInt64, UInt64)) {
+    mutating func _copyStringContent(from string: String) {
         var string = string
         
         string.withUTF8 { stringBuffer in
-            withUnsafeMutableBytes(of: &storage) { storageBuffer in
-                storageBuffer.copyMemory(from: UnsafeRawBufferPointer(stringBuffer))
+            precondition(stringBuffer.count <= Constant.capacity, "String must fit within the capacity.")
+            
+            withUnsafeMutableBytes(of: &low) { lowBuffer in
+                withUnsafeMutableBytes(of: &high) { highBuffer in
+                    lowBuffer.copyMemory(
+                        from: UnsafeRawBufferPointer(
+                            start: stringBuffer.baseAddress,
+                            count: min(Constant.wordByteCapacity, stringBuffer.count)
+                        )
+                    )
+                    
+                    if stringBuffer.count > Constant.wordByteCapacity {
+                        highBuffer.copyMemory(
+                            from: UnsafeRawBufferPointer(
+                                start: stringBuffer.baseAddress!.advanced(by: Constant.wordByteCapacity),
+                                count: stringBuffer.count - Constant.wordByteCapacity
+                            )
+                        )
+                    }
+                }
             }
         }
     }
