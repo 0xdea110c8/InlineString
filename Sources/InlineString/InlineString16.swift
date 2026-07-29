@@ -1,5 +1,3 @@
-import Darwin
-
 /// A 16-byte, fixed-capacity UTF-8 string stored entirely inline.
 ///
 /// `InlineString16` keeps its UTF-8 bytes directly within the value without heap allocation,
