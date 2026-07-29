@@ -50,7 +50,6 @@ let arraySearchSuite = [
     arraySearchComparison
 ]
 
-
 Benchmark.main(initSuite)
 Benchmark.main(copySuite)
 Benchmark.main(accessSuite)

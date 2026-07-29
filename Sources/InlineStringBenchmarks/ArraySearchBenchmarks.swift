@@ -1,7 +1,7 @@
 @preconcurrency import Benchmark
 import InlineString
 
-fileprivate nonisolated(unsafe) var inlineValues: [InlineString16] = [
+private nonisolated(unsafe) var inlineValues: [InlineString16] = [
     "Berlin",
     "London",
     "Tokyo",
@@ -9,7 +9,7 @@ fileprivate nonisolated(unsafe) var inlineValues: [InlineString16] = [
     "Moscow"
 ]
 
-fileprivate nonisolated(unsafe) var stringValues: [String] = [
+private nonisolated(unsafe) var stringValues: [String] = [
     "Berlin",
     "London",
     "Tokyo",
@@ -17,8 +17,8 @@ fileprivate nonisolated(unsafe) var stringValues: [String] = [
     "Moscow"
 ]
 
-fileprivate nonisolated(unsafe) var inlineTarget: InlineString16 = "Tokyo"
-fileprivate nonisolated(unsafe) var stringTarget = "Tokyo"
+private nonisolated(unsafe) var inlineTarget: InlineString16 = "Tokyo"
+private nonisolated(unsafe) var stringTarget = "Tokyo"
 
 let arraySearchComparison = BenchmarkSuite(name: "array-search") { suite in
     suite.benchmark("string") {

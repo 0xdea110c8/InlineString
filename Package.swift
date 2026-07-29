@@ -12,7 +12,7 @@ let package = Package(
         .library(
             name: "InlineString",
             targets: ["InlineString"]
-        ),
+        )
     ],
     dependencies: [
         .package(
@@ -37,6 +37,6 @@ let package = Package(
                     package: "swift-benchmark"
                 )
             ]
-        ),
+        )
     ]
 )

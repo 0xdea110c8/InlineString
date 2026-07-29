@@ -2,11 +2,11 @@
 import InlineString
 import Foundation
 
-fileprivate nonisolated(unsafe) var inlineSink: InlineString16 = ""
-fileprivate nonisolated(unsafe) var stringSink = ""
-fileprivate nonisolated(unsafe) var intSink = 0
-fileprivate nonisolated(unsafe) var boolSink = false
-fileprivate nonisolated(unsafe) var dataSink = Data()
+private nonisolated(unsafe) var inlineSink: InlineString16 = ""
+private nonisolated(unsafe) var stringSink = ""
+private nonisolated(unsafe) var intSink = 0
+private nonisolated(unsafe) var boolSink = false
+private nonisolated(unsafe) var dataSink = Data()
 
 @inline(never)
 func consumeInline(_ value: InlineString16) {

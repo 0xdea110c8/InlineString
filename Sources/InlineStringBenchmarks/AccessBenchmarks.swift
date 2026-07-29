@@ -1,8 +1,8 @@
 @preconcurrency import Benchmark
 import InlineString
 
-fileprivate nonisolated(unsafe) var inlineValue: InlineString16 = "Berlin"
-fileprivate nonisolated(unsafe) var stringValue = "Berlin"
+private nonisolated(unsafe) var inlineValue: InlineString16 = "Berlin"
+private nonisolated(unsafe) var stringValue = "Berlin"
 
 let accessCountComparison = BenchmarkSuite(name: "access-count") { suite in
     suite.benchmark("string") {
@@ -12,7 +12,7 @@ let accessCountComparison = BenchmarkSuite(name: "access-count") { suite in
             consumeInt(count)
         }
     }
-    
+
     suite.benchmark("inline-string") {
         var count = 0
         for _ in 0..<1000000 {
@@ -29,7 +29,7 @@ let accessStringComparison = BenchmarkSuite(name: "access-string") { suite in
             consumeString(value)
         }
     }
-    
+
     suite.benchmark("inline-string") {
         for _ in 0..<1000000 {
             let value = inlineValue.string
