@@ -62,6 +62,8 @@ guard let place = InlineString16(validating: string) else {
 ```
 
 The string length is stored as metadata inside the representation.
+> [!IMPORTANT]
+> When the storage is not fully utilized, the last byte is reserved for storing the string length. As a result, the final UTF-8 byte of the string cannot be in the range `0x00...0x0F`, since those values are reserved for the length encoding.
 
 ### Performance
 
@@ -95,6 +97,7 @@ Benchmarks were performed against Swift `String`. Each benchmark was executed re
   - Maximum size is 16 UTF-8 bytes
   - Converting back to `String` requires creating a `String` value
   - Not intended as a replacement for general-purpose `String`
+  - Last UTF-8 byte cannot be in the range `0x00...0x0F`, as these values are reserved for encoding the string length
 
 ### Intended use cases
 

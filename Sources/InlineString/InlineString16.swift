@@ -83,6 +83,9 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     ///   capacity of `InlineString16`. If it does not, initialization terminates
     ///   with a fatal error. Use `canStore(_:)` to check whether initialization
     ///   can succeed before creating a value.
+    /// - Important: When the storage is not fully utilized, the last byte is reserved for storing the string length.
+    ///   As a result, the final UTF-8 byte of the string cannot be in the range `0x00...0x0F`,
+    ///   since those values are reserved for the length encoding.
     /// - Parameter string: A string to store.
     public init(_ string: String) {
         self.init()
@@ -92,6 +95,9 @@ public struct InlineString16: BitwiseCopyable, Sendable {
 
     /// Creates an `InlineString16` instance from a string if it fits within the available inline storage.
     ///
+    /// - Important: When the storage is not fully utilized, the last byte is reserved for storing the string length.
+    ///   As a result, the final UTF-8 byte of the string cannot be in the range `0x00...0x0F`,
+    ///   since those values are reserved for the length encoding.
     /// - Parameter string: A string to store.
     /// - Returns: An initialized `InlineString16` value, or `nil` if the
     ///   string does not fit within the capacity of `InlineString16`.
@@ -248,6 +254,9 @@ extension InlineString16: ExpressibleByStringLiteral {
     ///   capacity of `InlineString16`. If it does not, initialization terminates
     ///   with a fatal error. Use `canStore(_:)` to check whether initialization
     ///   can succeed before creating a value.
+    /// - Important: When the storage is not fully utilized, the last byte is reserved for storing the string length.
+    ///   As a result, the final UTF-8 byte of the string cannot be in the range `0x00...0x0F`,
+    ///   since those values are reserved for the length encoding.
     public init(stringLiteral value: StringLiteralType) {
         self.init(value)
     }
