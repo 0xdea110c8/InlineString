@@ -1,6 +1,6 @@
 @preconcurrency import Benchmark
-import InlineString
 import Foundation
+import InlineString
 
 private nonisolated(unsafe) var data15Bytes = try! JSONEncoder().encode("123456789012345")
 private nonisolated(unsafe) var data16Bytes = try! JSONEncoder().encode("1234567890123456")

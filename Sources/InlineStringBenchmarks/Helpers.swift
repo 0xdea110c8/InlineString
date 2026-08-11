@@ -1,6 +1,6 @@
 @preconcurrency import Benchmark
-import InlineString
 import Foundation
+import InlineString
 
 private nonisolated(unsafe) var inlineSink: InlineString16 = ""
 private nonisolated(unsafe) var stringSink = ""

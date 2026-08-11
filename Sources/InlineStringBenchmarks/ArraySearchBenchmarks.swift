@@ -6,7 +6,7 @@ private nonisolated(unsafe) var inlineValues: [InlineString16] = [
     "London",
     "Tokyo",
     "Paris",
-    "Moscow"
+    "Moscow",
 ]
 
 private nonisolated(unsafe) var stringValues: [String] = [
@@ -14,7 +14,7 @@ private nonisolated(unsafe) var stringValues: [String] = [
     "London",
     "Tokyo",
     "Paris",
-    "Moscow"
+    "Moscow",
 ]
 
 private nonisolated(unsafe) var inlineTarget: InlineString16 = "Tokyo"

@@ -1,6 +1,6 @@
 @preconcurrency import Benchmark
-import InlineString
 import Foundation
+import InlineString
 
 private let inlineString = InlineString16("1234567890123456")
 private let string = String("123456789012345")

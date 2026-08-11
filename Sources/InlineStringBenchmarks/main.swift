@@ -10,18 +10,18 @@ let initSuite = [
     initEmptyComparison,
     initComparison,
     init15Comparison,
-    init16Comparison
+    init16Comparison,
 ]
 
 let copySuite = [
     copyEmptyComparison,
     copyComparison,
-    copy15ByteComparison
+    copy15ByteComparison,
 ]
 
 let accessSuite = [
     accessCountComparison,
-    accessStringComparison
+    accessStringComparison,
 ]
 
 let equalitySuite = [
@@ -34,12 +34,12 @@ let hashSuite = [
 
 let decodeSuite = [
     decode15Comparison,
-    decode16Comparison
+    decode16Comparison,
 ]
 
 let encodeSuite = [
     encode15Comparison,
-    encode16Comparison
+    encode16Comparison,
 ]
 
 let arrayIterationSuite = [
