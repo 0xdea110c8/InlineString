@@ -6,7 +6,11 @@ import PackageDescription
 let package = Package(
     name: "InlineString",
     platforms: [
-        .iOS(.v12)
+        .iOS(.v12),
+        .macOS(.v13),
+        .tvOS(.v12),
+        .watchOS(.v4),
+        .visionOS(.v1)
     ],
     products: [
         .library(
@@ -16,8 +20,8 @@ let package = Package(
     ],
     dependencies: [
         .package(
-            url: "https://github.com/google/swift-benchmark.git",
-            from: "0.1.0"
+            url: "https://github.com/ordo-one/package-benchmark",
+            .upToNextMajor(from: "1.0.0")
         )
     ],
     targets: [
@@ -29,13 +33,14 @@ let package = Package(
             dependencies: ["InlineString"]
         ),
         .executableTarget(
-            name: "InlineStringBenchmarks",
+            name: "InlineStringBenchmark",
             dependencies: [
-                "InlineString",
-                .product(
-                    name: "Benchmark",
-                    package: "swift-benchmark"
-                ),
+                .product(name: "Benchmark", package: "package-benchmark"),
+                "InlineString"
+            ],
+            path: "Benchmarks/InlineStringBenchmark",
+            plugins: [
+                .plugin(name: "BenchmarkPlugin", package: "package-benchmark")
             ]
         ),
     ]
