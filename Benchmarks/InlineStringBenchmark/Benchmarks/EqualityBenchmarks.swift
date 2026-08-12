@@ -1,13 +1,16 @@
 import Benchmark
 import InlineString
 
-let accessCount: @Sendable () -> Void = {
-    let string: String = "1234567890"
-    let inlineString: InlineString16 = "1234567890"
-    var count = 0
+let equality: @Sendable () -> Void = {
+    let lhsInline: InlineString16 = "Berlin"
+    let rhsEqualInline: InlineString16 = "Berlin"
+    let rhsDifferentInline: InlineString16 = "London"
+    let lhsString: InlineString16 = "Berlin"
+    let rhsEqualString: InlineString16 = "Berlin"
+    let rhsDifferentString: InlineString16 = "London"
 
     Benchmark(
-        "access/count(utf8)/string",
+        "equality/equal/string",
         configuration: .init(
             metrics: [.wallClock, .instructions],
             timeUnits: .nanoseconds
@@ -15,14 +18,14 @@ let accessCount: @Sendable () -> Void = {
     ) { benchmark in
         for _ in benchmark.scaledIterations {
             for _ in 0..<1_000_000 {
-                count += string.utf8.count
-                consumeInt(count)
+                let result = lhsString == rhsEqualString
+                consumeBool(result)
             }
         }
     }
 
     Benchmark(
-        "access/count/inlinestring16",
+        "equality/different/string",
         configuration: .init(
             metrics: [.wallClock, .instructions],
             timeUnits: .nanoseconds
@@ -30,34 +33,14 @@ let accessCount: @Sendable () -> Void = {
     ) { benchmark in
         for _ in benchmark.scaledIterations {
             for _ in 0..<1_000_000 {
-                count += inlineString.count
-                consumeInt(count)
-            }
-        }
-    }
-}
-
-let accessString: @Sendable () -> Void = {
-    let string: String = "1234567890"
-    let inlineString: InlineString16 = "1234567890"
-
-    Benchmark(
-        "access/string/string",
-        configuration: .init(
-            metrics: [.wallClock, .instructions],
-            timeUnits: .nanoseconds
-        )
-    ) { benchmark in
-        for _ in benchmark.scaledIterations {
-            for _ in 0..<1_000_000 {
-                let value = string
-                consumeString(value)
+                let result = lhsString == rhsDifferentString
+                consumeBool(result)
             }
         }
     }
 
     Benchmark(
-        "access/string/inlinestring16",
+        "equality/equal/inlinestring16",
         configuration: .init(
             metrics: [.wallClock, .instructions],
             timeUnits: .nanoseconds
@@ -65,8 +48,23 @@ let accessString: @Sendable () -> Void = {
     ) { benchmark in
         for _ in benchmark.scaledIterations {
             for _ in 0..<1_000_000 {
-                let value = inlineString.string
-                consumeString(value)
+                let result = lhsInline == rhsEqualInline
+                consumeBool(result)
+            }
+        }
+    }
+
+    Benchmark(
+        "equality/different/inlinestring16",
+        configuration: .init(
+            metrics: [.wallClock, .instructions],
+            timeUnits: .nanoseconds
+        )
+    ) { benchmark in
+        for _ in benchmark.scaledIterations {
+            for _ in 0..<1_000_000 {
+                let result = lhsInline == rhsDifferentInline
+                consumeBool(result)
             }
         }
     }

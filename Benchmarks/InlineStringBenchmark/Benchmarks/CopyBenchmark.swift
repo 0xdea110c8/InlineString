@@ -178,6 +178,7 @@ let copyEscaping16Byte: @Sendable () -> Void = {
 }
 
 let copy16Byte: @Sendable () -> Void = {
+
     let string16: String = "1234567890123456"
     let inlinestring16: InlineString16 = "1234567890123456"
 

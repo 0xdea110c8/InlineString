@@ -1,5 +1,4 @@
 import Benchmark
-import Foundation
 import InlineString
 
 let initEmpty: @Sendable () -> Void = {
