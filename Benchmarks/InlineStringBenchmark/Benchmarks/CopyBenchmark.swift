@@ -3,7 +3,6 @@ import Foundation
 import InlineString
 
 let copyEscapingEmpty: @Sendable () -> Void = {
-
     let emptyString: String = ""
     let emptyInlineString: InlineString16 = ""
 
@@ -39,7 +38,6 @@ let copyEscapingEmpty: @Sendable () -> Void = {
 }
 
 let copyEmpty: @Sendable () -> Void = {
-
     let emptyString: String = ""
     let emptyInlineString: InlineString16 = ""
 
@@ -75,7 +73,6 @@ let copyEmpty: @Sendable () -> Void = {
 }
 
 let copyEscaping15Byte: @Sendable () -> Void = {
-
     let string15: String = "123456789012345"
     let inlineString15: InlineString16 = "123456789012345"
 
@@ -111,7 +108,6 @@ let copyEscaping15Byte: @Sendable () -> Void = {
 }
 
 let copy15Byte: @Sendable () -> Void = {
-
     let string15: String = "123456789012345"
     let inlineString15: InlineString16 = "123456789012345"
 
@@ -147,7 +143,6 @@ let copy15Byte: @Sendable () -> Void = {
 }
 
 let copyEscaping16Byte: @Sendable () -> Void = {
-
     let string16: String = "1234567890123456"
     let inlinestring16: InlineString16 = "1234567890123456"
 
@@ -183,7 +178,6 @@ let copyEscaping16Byte: @Sendable () -> Void = {
 }
 
 let copy16Byte: @Sendable () -> Void = {
-
     let string16: String = "1234567890123456"
     let inlinestring16: InlineString16 = "1234567890123456"
 
