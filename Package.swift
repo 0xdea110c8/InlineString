@@ -10,7 +10,7 @@ let package = Package(
         .macOS(.v13),
         .tvOS(.v12),
         .watchOS(.v4),
-        .visionOS(.v1)
+        .visionOS(.v1),
     ],
     products: [
         .library(
@@ -36,7 +36,7 @@ let package = Package(
             name: "InlineStringBenchmark",
             dependencies: [
                 .product(name: "Benchmark", package: "package-benchmark"),
-                "InlineString"
+                "InlineString",
             ],
             path: "Benchmarks/InlineStringBenchmark",
             plugins: [
