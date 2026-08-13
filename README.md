@@ -67,21 +67,7 @@ The string length is stored as metadata inside the representation.
 
 ### Performance
 
-Benchmarks were performed against Swift `String`. Each benchmark was executed repeatedly to obtain stable measurements.
-
-| Benchmark | `String` | `InlineString16` | Result |
-| --- | ---: | ---: | --- |
-| Copy | 3.12 ms | 0.67 ms | ~4.7x faster |
-| Array iteration | 3.11 ms | 0.69 ms | ~4.5x faster |
-| Equality (different values) | 1.80 ms | 0.70 ms | ~2.6x faster |
-| Array search | 6.36 ms | 4.03 ms | ~1.6x faster |
-| Accessing count | 0.68 ms | 0.67 ms | Comparable performance |
-| Hashing | 15.16 ms | 15.23 ms | Comparable performance |
-| Decoding | 379 ms | 373 ms | Comparable performance |
-| Encoding | 350 ms | 363 ms | Comparable performance |
-| Initialization | 3.10 ms | 4.72 ms | ~1.5x slower |
-| Initialization (16-byte strings) | 3.12 ms | 7.12 ms | ~2.3x slower |
-| Conversion to `String` | 3.11 ms | 9.02 ms | ~2.9x slower |
+See [Benchmark results](Benchmark.md)
 
 ### Trade-offs
 
@@ -91,7 +77,6 @@ Benchmarks were performed against Swift `String`. Each benchmark was executed re
   - Compact storage
   - Predictable memory layout
   - Fast copying
-  - Fast comparison
   - Fast iteration
 - Limitations:
   - Maximum size is 16 UTF-8 bytes
