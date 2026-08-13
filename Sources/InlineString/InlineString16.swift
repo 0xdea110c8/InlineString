@@ -22,7 +22,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// - Parameter string: A string representation to check.
     /// - Returns: `true` if the string fits; otherwise, `false`.
     public static func canStore<StringRepresentation: StringProtocol>(_ string: StringRepresentation) -> Bool {
-        return string.utf8.count <= 16
+        string.utf8.count <= 16
     }
 
     // MARK: - Public properties
@@ -37,11 +37,10 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         get {
             let countByte = UInt8(truncatingIfNeeded: high >> 56)
 
-            if countByte < 16 {
-                return Int(countByte)
-            } else {
+            guard countByte < 16 else {
                 return 16
             }
+            return Int(countByte)
         }
         set {
             if newValue < 16 {
@@ -148,12 +147,12 @@ public struct InlineString16: BitwiseCopyable, Sendable {
         let utf8Count = utf8.count
 
         switch utf8Count {
-        case 0..<16:
-            _copyUTF8Bytes(from: utf8)
-        case 16:
-            _copyStringContent(from: string)
-        default:
-            return _onExceedingCapacity(validating: validating)
+            case 0..<16:
+                _copyUTF8Bytes(from: utf8)
+            case 16:
+                _copyStringContent(from: string)
+            default:
+                return _onExceedingCapacity(validating: validating)
         }
 
         count = utf8Count

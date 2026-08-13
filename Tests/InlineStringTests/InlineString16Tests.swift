@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import InlineString
 
 // NOTE:
@@ -15,7 +16,7 @@ struct InlineString16Tests {
             "abc123",
             "London",
             "Текст",
-            "USA 🇺🇸"
+            "USA 🇺🇸",
         ]
     )
     func `canStore(_:) returns true when the string fits within the capacity`(
@@ -28,7 +29,7 @@ struct InlineString16Tests {
     @Test(
         arguments: [
             TestData.stringExceedsCapacity,
-            "12345678901234567890"
+            "12345678901234567890",
         ]
     )
     func `canStore(_:) returns false when the string exceeds the capacity`(
@@ -43,7 +44,7 @@ struct InlineString16Tests {
             InlineString16(),
             InlineString16(TestData.stringFitsCapacity),
             InlineString16(TestData.stringEqualsCapacity),
-            "1234567890"
+            "1234567890",
         ]
     )
     func `capacity matches type constant`(
@@ -57,7 +58,7 @@ struct InlineString16Tests {
         arguments: [
             InlineString16(TestData.stringFitsCapacity),
             InlineString16(validating: TestData.stringFitsCapacity)!,
-            "1234567890"
+            "1234567890",
         ]
     )
     func `count uses the last byte of the lower word as metadata below capacity`(
@@ -71,7 +72,7 @@ struct InlineString16Tests {
         arguments: [
             InlineString16(TestData.stringEqualsCapacity),
             InlineString16(validating: TestData.stringEqualsCapacity)!,
-            "1234567890123456"
+            "1234567890123456",
         ]
     )
     func `count uses capacity when storage is fully occupied`(
@@ -86,7 +87,7 @@ struct InlineString16Tests {
         arguments: [
             InlineString16(),
             InlineString16(TestData.emptyString),
-            ""
+            "",
         ]
     )
     func `isEmpty returns true when the count is zero`(
@@ -100,7 +101,7 @@ struct InlineString16Tests {
     @Test(
         arguments: [
             InlineString16(TestData.nonEmptyString),
-            "1234567890"
+            "1234567890",
         ]
     )
     func `isEmpty returns false when the count is not zero`(
@@ -122,7 +123,7 @@ struct InlineString16Tests {
             "abc123",
             "London",
             "Текст",
-            "USA 🇺🇸"
+            "USA 🇺🇸",
         ]
     )
     func `string matches the decoded UTF-8 bytes`(
@@ -147,16 +148,16 @@ struct InlineString16Tests {
         #expect(inlineString.low == 0)
     }
 
-#if os(macOS)
-    // NOTE: This test intentionally terminates the current process and should only be run on macOS.
-    @Test
-    func `init(_:) traps when string exceeds the capacity`() async {
-        // then
-        await #expect(processExitsWith: .failure) {
-            _ = InlineString16(TestData.stringExceedsCapacity)
+    #if os(macOS)
+        // NOTE: This test intentionally terminates the current process and should only be run on macOS.
+        @Test
+        func `init(_:) traps when string exceeds the capacity`() async {
+            // then
+            await #expect(processExitsWith: .failure) {
+                _ = InlineString16(TestData.stringExceedsCapacity)
+            }
         }
-    }
-#endif // os(macOS)
+    #endif    // os(macOS)
 
     @Test(
         arguments: [
@@ -167,7 +168,7 @@ struct InlineString16Tests {
             "abc123",
             "London",
             "Текст",
-            "USA 🇺🇸"
+            "USA 🇺🇸",
         ]
     )
     func `init(_:) stores a string when it fits within the capacity`(
@@ -203,7 +204,7 @@ struct InlineString16Tests {
             "abc123",
             "London",
             "Текст",
-            "USA 🇺🇸"
+            "USA 🇺🇸",
         ]
     )
     func `init(validating:) stores a string when it fits within the capacity`(
@@ -225,7 +226,7 @@ struct InlineString16Tests {
             "abc123",
             "London",
             "Текст",
-            "USA 🇺🇸"
+            "USA 🇺🇸",
         ]
     )
     func `withUnsafeUTF8Bytes(_:) passes a buffer matching stored bytes and count`(
@@ -253,7 +254,7 @@ struct InlineString16Tests {
             "abc123",
             "London",
             "Текст",
-            "USA 🇺🇸"
+            "USA 🇺🇸",
         ]
     )
     func `withUnsafeUTF8Bytes(_:) rethrows errors from the closure`(
@@ -273,7 +274,7 @@ struct InlineString16Tests {
     @Test(
         arguments: [
             TestData.emptyString,
-            ""
+            "",
         ]
     )
     func `_initialize(from:validating:) returns true when string is empty`(
@@ -289,17 +290,17 @@ struct InlineString16Tests {
         #expect(resultWithValidation == true)
     }
 
-#if os(macOS)
-    // NOTE: This test intentionally terminates the current process and should only be run on macOS.
-    @Test
-    func `_initialize(from:validating:) traps when string exceeds the capacity and validation disabled`() async {
-        // then
-        await #expect(processExitsWith: .failure) {
-            var inlineString = InlineString16()
-            inlineString._initialize(from: TestData.stringExceedsCapacity, validating: false)
+    #if os(macOS)
+        // NOTE: This test intentionally terminates the current process and should only be run on macOS.
+        @Test
+        func `_initialize(from:validating:) traps when string exceeds the capacity and validation disabled`() async {
+            // then
+            await #expect(processExitsWith: .failure) {
+                var inlineString = InlineString16()
+                inlineString._initialize(from: TestData.stringExceedsCapacity, validating: false)
+            }
         }
-    }
-#endif // os(macOS)
+    #endif    // os(macOS)
 
     @Test(
         arguments: [
@@ -324,7 +325,7 @@ struct InlineString16Tests {
             "abc123",
             "London",
             "Текст",
-            "USA 🇺🇸"
+            "USA 🇺🇸",
         ]
     )
     func `_initialize(from:validating:) stores a string and returns true when string fits within the capacity`(
@@ -345,18 +346,18 @@ struct InlineString16Tests {
         #expect(secondInlineString.string == string)
     }
 
-#if os(macOS)
-    // NOTE: This test intentionally terminates the current process and should only be run on macOS.
-    @Test
-    func `_copyUTF8Bytes(from:) traps for a heap-allocated string`() async {
-        // then
-        await #expect(processExitsWith: .failure) {
-            var inlineString = InlineString16()
-            let utf8 = TestData.heapAllocatedString.utf8
-            inlineString._copyUTF8Bytes(from: utf8)
+    #if os(macOS)
+        // NOTE: This test intentionally terminates the current process and should only be run on macOS.
+        @Test
+        func `_copyUTF8Bytes(from:) traps for a heap-allocated string`() async {
+            // then
+            await #expect(processExitsWith: .failure) {
+                var inlineString = InlineString16()
+                let utf8 = TestData.heapAllocatedString.utf8
+                inlineString._copyUTF8Bytes(from: utf8)
+            }
         }
-    }
-#endif // os(macOS)
+    #endif    // os(macOS)
 
     @Test(
         arguments: [
@@ -364,7 +365,7 @@ struct InlineString16Tests {
             "abc123",
             "London",
             "Текст",
-            "USA 🇺🇸"
+            "USA 🇺🇸",
         ]
     )
     func `_copyUTF8Bytes(from:) stores a small string`(
@@ -378,23 +379,23 @@ struct InlineString16Tests {
         #expect(inlineString.string.utf8.prefix(string.utf8.count).elementsEqual(string.utf8))
     }
 
-#if os(macOS)
-    // NOTE: This test intentionally terminates the current process and should only be run on macOS.
-    @Test
-    func `_copyStringContent(from:) traps for strings other than 16 UTF-8 bytes`() async {
-        // then
-        await #expect(processExitsWith: .failure) {
-            var inlineString = InlineString16()
-            let string = TestData.stringFitsCapacity
-            inlineString._copyStringContent(from: string)
+    #if os(macOS)
+        // NOTE: This test intentionally terminates the current process and should only be run on macOS.
+        @Test
+        func `_copyStringContent(from:) traps for strings other than 16 UTF-8 bytes`() async {
+            // then
+            await #expect(processExitsWith: .failure) {
+                var inlineString = InlineString16()
+                let string = TestData.stringFitsCapacity
+                inlineString._copyStringContent(from: string)
+            }
+            await #expect(processExitsWith: .failure) {
+                var inlineString = InlineString16()
+                let string = TestData.stringExceedsCapacity
+                inlineString._copyStringContent(from: string)
+            }
         }
-        await #expect(processExitsWith: .failure) {
-            var inlineString = InlineString16()
-            let string = TestData.stringExceedsCapacity
-            inlineString._copyStringContent(from: string)
-        }
-    }
-#endif // os(macOS)
+    #endif    // os(macOS)
 
     @Test(
         arguments: [
@@ -412,17 +413,17 @@ struct InlineString16Tests {
         #expect(inlineString.string.utf8.elementsEqual(string.utf8))
     }
 
-#if os(macOS)
-    // NOTE: This test intentionally terminates the current process and should only be run on macOS.
-    @Test
-    func `_onExceedingCapacity(validating:) traps if validation disabled`() async {
-        // then
-        await #expect(processExitsWith: .failure) {
-            let inlineString = InlineString16()
-            _ = inlineString._onExceedingCapacity(validating: false)
+    #if os(macOS)
+        // NOTE: This test intentionally terminates the current process and should only be run on macOS.
+        @Test
+        func `_onExceedingCapacity(validating:) traps if validation disabled`() async {
+            // then
+            await #expect(processExitsWith: .failure) {
+                let inlineString = InlineString16()
+                _ = inlineString._onExceedingCapacity(validating: false)
+            }
         }
-    }
-#endif // os(macOS)
+    #endif    // os(macOS)
 
     @Test
     func `_onExceedingCapacity(validating:) returns false if validation enabled`() {
@@ -434,16 +435,16 @@ struct InlineString16Tests {
         #expect(result == false)
     }
 
-#if os(macOS)
-    // NOTE: This test intentionally terminates the current process and should only be run on macOS.
-    @Test
-    func `init(stringLiteral:) traps when string exceeds the capacity`() async {
-        // then
-        await #expect(processExitsWith: .failure) {
-            _ = InlineString16("12345678901234567890")
+    #if os(macOS)
+        // NOTE: This test intentionally terminates the current process and should only be run on macOS.
+        @Test
+        func `init(stringLiteral:) traps when string exceeds the capacity`() async {
+            // then
+            await #expect(processExitsWith: .failure) {
+                _ = InlineString16("12345678901234567890")
+            }
         }
-    }
-#endif // os(macOS)
+    #endif    // os(macOS)
 
     @Test
     func `init(stringLiteral:) produces the same inline string as init(_:)`() {
@@ -460,7 +461,7 @@ struct InlineString16Tests {
             "abc123",
             "London",
             "Текст",
-            "USA 🇺🇸"
+            "USA 🇺🇸",
         ]
     )
     func `== returns true for identical inline strings`(
@@ -506,7 +507,7 @@ struct InlineString16Tests {
             "abc123",
             "London",
             "Текст",
-            "USA 🇺🇸"
+            "USA 🇺🇸",
         ]
     )
     func `hashValue is equal for equal inline strings`(
@@ -527,7 +528,7 @@ struct InlineString16Tests {
             "London",
             "Текст",
             "USA 🇺🇸",
-            ""
+            "",
         ]
     )
     func `init(from:) decodes a string within capacity`(
@@ -564,7 +565,7 @@ struct InlineString16Tests {
             "abc123",
             "London",
             "Текст",
-            "USA 🇺🇸"
+            "USA 🇺🇸",
         ]
     )
     func `encode(to:) encodes the string`(
@@ -612,7 +613,7 @@ extension InlineString16Tests {
         static let heapAllocatedString = "1234567890123456"
     }
 }
-//    
+//
 //    @available(iOS 26.0, *)
 //    @Test("encode(to:) encodes the string")
 //    func encodingEncodesFullStringWhenFits() throws {

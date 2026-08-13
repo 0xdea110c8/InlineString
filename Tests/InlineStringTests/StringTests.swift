@@ -1,14 +1,15 @@
 import Testing
+
 @testable import InlineString
 
 struct StringTests {
     @Test(
-          arguments: [
+        arguments: [
             TestData.stringFitsCapacity,
             TestData.anotherStringFitsCapacity,
             TestData.stringEqualsCapacity,
-            TestData.emptyString
-          ]
+            TestData.emptyString,
+        ]
     )
     func `init(_:) returns the contents of InlineString16`(_ string: String) {
         // given
