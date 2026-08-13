@@ -28,14 +28,22 @@ jobs:
       - name: Save result
         if: always()
         run: |
-          echo "${{ matrix.swift }}=${{ steps.tests.outcome }}" > result.txt
+          echo "$(swift --version | head -n 1)" > swift-version.txt
+
+          if [ "${{ steps.tests.outcome }}" = "success" ]; then
+            echo "success" > result.txt
+          else
+            echo "${{ steps.tests.outcome }}" > result.txt
+          fi
 
       - name: Upload result
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-result-${{ matrix.swift }}
-          path: result.txt
+          name: test-result
+          path: |
+            result.txt
+            swift-version.txt
 
   report:
     needs: tests
@@ -46,15 +54,14 @@ jobs:
       actions: read
       pull-requests: write
 
-    runs-on: macos-26 
+    runs-on: ubuntu-latest
 
     steps:
       - name: Download test results
         uses: actions/download-artifact@v5
         with:
-          pattern: test-result-*
+          name: test-result
           path: test-results
-          merge-multiple: false
 
       - name: Build comment
         id: build-comment
@@ -62,57 +69,23 @@ jobs:
           commit="${{ github.event.pull_request.head.sha || github.sha }}"
           short_commit="${commit:0:7}"
 
+          swift_version=$(cat test-results/swift-version.txt)
+          result=$(cat test-results/result.txt)
+
           echo "## Unit Tests" > comment.md
           echo "" >> comment.md
           echo "Commit: \`$short_commit\`" >> comment.md
           echo "" >> comment.md
-          echo "| Swift | Result |" >> comment.md
-          echo "|:------|:-------|" >> comment.md
-
-          failed=false
-
-          for dir in $(find test-results -maxdepth 1 -type d -name 'test-result-*' | sort -V); do
-            result=$(cat "$dir/result.txt")
-
-            version="${result%%=*}"
-            status="${result##*=}"
-
-            case "$status" in
-              success)
-                echo "| $version | ✅ Passed |" >> comment.md
-                ;;
-
-              failure)
-                echo "| $version | ❌ Failed |" >> comment.md
-                failed=true
-                ;;
-
-              skipped)
-                echo "| $version | ⚠️ Skipped |" >> comment.md
-                failed=true
-                ;;
-
-              cancelled)
-                echo "| $version | 🚫 Cancelled |" >> comment.md
-                failed=true
-                ;;
-
-              *)
-                echo "| $version | ❓ Unknown ($status) |" >> comment.md
-                failed=true
-                ;;
-            esac
-          done
-
+          echo "Environment: \`$swift_version\`" >> comment.md
           echo "" >> comment.md
 
-          if [ "$failed" = "true" ]; then
-            echo "**Tests failed**" >> comment.md
+          if [ "$result" = "success" ]; then
+            echo "✅ Tests passed" >> comment.md
+            echo "failed=false" >> "$GITHUB_OUTPUT"
           else
-            echo "**Tests passed**" >> comment.md
+            echo "❌ Tests failed ($result)" >> comment.md
+            echo "failed=true" >> "$GITHUB_OUTPUT"
           fi
-
-          echo "failed=$failed" >> "$GITHUB_OUTPUT"
 
       - name: Comment PR
         if: github.event_name == 'pull_request'
