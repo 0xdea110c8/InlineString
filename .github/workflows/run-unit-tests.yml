@@ -1,0 +1,101 @@
+name: Run unit tests
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    permissions:
+      contents: read
+
+    runs-on: macos-26
+
+    strategy:
+      fail-fast: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Check Swift version
+        run: swift --version
+
+      - name: Run tests
+        id: tests
+        run: swift test
+
+      - name: Save result
+        if: always()
+        run: |
+          echo "$(swift --version | head -n 1)" > swift-version.txt
+
+          if [ "${{ steps.tests.outcome }}" = "success" ]; then
+            echo "success" > result.txt
+          else
+            echo "${{ steps.tests.outcome }}" > result.txt
+          fi
+
+      - name: Upload result
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-result
+          path: |
+            result.txt
+            swift-version.txt
+
+  report:
+    needs: tests
+    if: always()
+
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download test results
+        uses: actions/download-artifact@v8
+        with:
+          name: test-result
+          path: test-results
+
+      - name: Build comment
+        id: build-comment
+        run: |
+          commit="${{ github.event.pull_request.head.sha || github.sha }}"
+          short_commit="${commit:0:7}"
+
+          swift_version=$(cat test-results/swift-version.txt)
+          result=$(cat test-results/result.txt)
+
+          echo "## Unit Tests" > comment.md
+          echo "" >> comment.md
+          echo "Commit: \`$short_commit\`" >> comment.md
+          echo "" >> comment.md
+          echo "Environment: \`$swift_version\`" >> comment.md
+          echo "" >> comment.md
+
+          if [ "$result" = "success" ]; then
+            echo "✅ Tests passed" >> comment.md
+            echo "failed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "❌ Tests failed ($result)" >> comment.md
+            echo "failed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment PR
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment "${{ github.event.pull_request.number }}" \
+            --repo "${{ github.repository }}" \
+            --body-file comment.md
+
+      - name: Fail report
+        if: steps.build-comment.outputs.failed == 'true'
+        run: exit 1
