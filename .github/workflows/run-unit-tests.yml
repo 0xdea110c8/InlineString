@@ -1,0 +1,137 @@
+name: Run unit tests
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    permissions:
+      contents: read
+
+    runs-on: macos-26
+
+    strategy:
+      fail-fast: false
+      matrix:
+        swift:
+          - "6.0"
+          - "6.1"
+          - "6.2"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: ${{ matrix.swift }}
+
+      - name: Check Swift version
+        run: swift --version
+
+      - name: Run tests
+        id: tests
+        run: swift test
+
+      - name: Save result
+        if: always()
+        run: |
+          echo "${{ matrix.swift }}=${{ steps.tests.outcome }}" > result.txt
+
+      - name: Upload result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-result-${{ matrix.swift }}
+          path: result.txt
+
+  report:
+    needs: tests
+    if: always()
+
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download test results
+        uses: actions/download-artifact@v5
+        with:
+          pattern: test-result-*
+          path: test-results
+          merge-multiple: false
+
+      - name: Build comment
+        id: build-comment
+        run: |
+          commit="${{ github.event.pull_request.head.sha || github.sha }}"
+          short_commit="${commit:0:7}"
+
+          echo "## Unit Tests" > comment.md
+          echo "" >> comment.md
+          echo "Commit: \`$short_commit\`" >> comment.md
+          echo "" >> comment.md
+          echo "| Swift | Result |" >> comment.md
+          echo "|:------|:-------|" >> comment.md
+
+          failed=false
+
+          for dir in $(find test-results -maxdepth 1 -type d -name 'test-result-*' | sort -V); do
+            result=$(cat "$dir/result.txt")
+
+            version="${result%%=*}"
+            status="${result##*=}"
+
+            case "$status" in
+              success)
+                echo "| $version | ✅ Passed |" >> comment.md
+                ;;
+
+              failure)
+                echo "| $version | ❌ Failed |" >> comment.md
+                failed=true
+                ;;
+
+              skipped)
+                echo "| $version | ⚠️ Skipped |" >> comment.md
+                failed=true
+                ;;
+
+              cancelled)
+                echo "| $version | 🚫 Cancelled |" >> comment.md
+                failed=true
+                ;;
+
+              *)
+                echo "| $version | ❓ Unknown ($status) |" >> comment.md
+                failed=true
+                ;;
+            esac
+          done
+
+          echo "" >> comment.md
+
+          if [ "$failed" = "true" ]; then
+            echo "**Tests failed**" >> comment.md
+          else
+            echo "**Tests passed**" >> comment.md
+          fi
+
+          echo "failed=$failed" >> "$GITHUB_OUTPUT"
+
+      - name: Comment PR
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment "${{ github.event.pull_request.number }}" \
+            --body-file comment.md
+
+      - name: Fail report
+        if: steps.build-comment.outputs.failed == 'true'
+        run: exit 1
