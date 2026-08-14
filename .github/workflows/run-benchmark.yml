@@ -48,7 +48,7 @@ jobs:
           path: .benchmarkBaselines
 
       - name: Compare results
-        run: swift package benchmark baseline compare main \
+        run: | swift package benchmark baseline compare main \
               --filter ".*inlinestring16.*" \
               --format markdown \
               --no-progress 
