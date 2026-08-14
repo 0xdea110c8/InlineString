@@ -16,7 +16,6 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.base.sha }}
-          path: base
 
       - name: Update baseline
         run: swift package --allow-writing-to-package-directory benchmark baseline update main
@@ -36,7 +35,6 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: benchmark-baseline
-          path: .benchmarkBaselines
 
       - name: Compare results
         run: swift package benchmark baseline compare main \
