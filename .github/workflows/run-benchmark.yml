@@ -18,8 +18,7 @@ jobs:
           ref: ${{ github.event.pull_request.base.sha }}
 
       - name: Update baseline
-        run: swift package --allow-writing-to-package-directory \
-              benchmark baseline update main \
+        run: swift package --allow-writing-to-package-directory benchmark baseline update main \
               --no-progress 
       
       - name: Upload baseline
