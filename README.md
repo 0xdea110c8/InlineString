@@ -1,4 +1,6 @@
-[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2F0xdea110c8%2FInlineString%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/0xdea110c8/InlineString) [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2F0xdea110c8%2FInlineString%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/0xdea110c8/InlineString)
+![](https://img.shields.io/badge/Availability-iOS_12_%7C_macOS_13_%7C_tvOS_18_%7C_watchOS_4_%7C_visionOS_1-seagreen)
+![](https://img.shields.io/badge/License-MIT-orange)  
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2F0xdea110c8%2FInlineString%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/0xdea110c8/InlineString)
 
 # InlineString
 
