@@ -137,6 +137,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     ///     return `false` instead of triggering a runtime trap.
     /// - Returns: `true` if the string was successfully stored; otherwise, `false`
     ///   when validation is enabled and the string exceeds the storage capacity.
+    @inline(__always)
     @discardableResult
     mutating func _initialize(from string: String, validating: Bool) -> Bool {
         guard !string.isEmpty else {
@@ -167,6 +168,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// - Parameters:
     ///   - utf8: A UTF-8 view containing the bytes to copy.
     ///   - storage: The destination storage tuple.
+    @inline(__always)
     mutating func _copyUTF8Bytes(from utf8: String.UTF8View) {
         precondition(utf8.count <= 15, "String must fit within small string capacity.")
 
@@ -204,6 +206,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// - Parameters:
     ///   - string: The source string.
     ///   - storage: The destination storage tuple.
+    @inline(__always)
     mutating func _copyStringContent(from string: String) {
         var string = string
 
@@ -235,6 +238,7 @@ public struct InlineString16: BitwiseCopyable, Sendable {
     /// - Parameter validating: A Boolean value indicating whether the operation
     ///   should fail gracefully instead of trapping.
     /// - Returns: `false` when validation is enabled.
+    @inline(__always)
     func _onExceedingCapacity(validating: Bool) -> Bool {
         if validating {
             return false
