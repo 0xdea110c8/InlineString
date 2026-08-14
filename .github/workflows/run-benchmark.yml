@@ -34,6 +34,7 @@ jobs:
         with:
           name: benchmark-baseline
           path: .benchmarkBaselines
+          include-hidden-files: true
       
       - name: Checkout current
         uses: actions/checkout@v7
