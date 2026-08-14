@@ -19,14 +19,13 @@ jobs:
 
       - name: Update baseline
         run: swift package --allow-writing-to-package-directory benchmark baseline update main --no-progress
+
       - name: Debug baseline
           run: |
             echo "PWD:"
             pwd
-
             echo "Directories:"
             find . -type d -name "*benchmark*" -o -name ".benchmarkBaselines"
-
             echo "Files:"
             find . -type f -name "results.json"
       
