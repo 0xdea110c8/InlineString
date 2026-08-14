@@ -8,5 +8,4 @@ DerivedData/
 .netrc
 Package.resolved
 
-.benchmarkBaselines
-/Scripts/benchmarks
+.benchmarkBaselines/
