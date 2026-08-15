@@ -18,12 +18,6 @@ let package = Package(
             targets: ["InlineString"]
         )
     ],
-    dependencies: [
-        .package(
-            url: "https://github.com/ordo-one/package-benchmark",
-            .upToNextMajor(from: "1.0.0")
-        )
-    ],
     targets: [
         .target(
             name: "InlineString"
@@ -31,17 +25,6 @@ let package = Package(
         .testTarget(
             name: "InlineStringTests",
             dependencies: ["InlineString"]
-        ),
-        .executableTarget(
-            name: "InlineStringBenchmark",
-            dependencies: [
-                .product(name: "Benchmark", package: "package-benchmark"),
-                "InlineString",
-            ],
-            path: "Benchmarks/InlineStringBenchmark",
-            plugins: [
-                .plugin(name: "BenchmarkPlugin", package: "package-benchmark")
-            ]
         ),
     ]
 )
