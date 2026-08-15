@@ -21,6 +21,7 @@ Differences within 1.00×–1.10× are treated as comparable performance.
 | `equality/different` | 1.112 | 1.112 | **comparable performance** |
 | `hash` | 7.545 | 7.557 | **comparable performance** |
 | `init/empty` | 1.112 | 1.112 | **comparable performance** |
+| `init/empty/string-literal` | 1.112 | 1.113 | **comparable performance** |
 | `iterate/count` | 1.136 | 1.134 | **comparable performance** |
 | `decode/15-byte` | 374 | 376 | **comparable performance** |
 | `decode/16-byte` | 406 | 412 | **comparable performance** |
@@ -31,6 +32,5 @@ Differences within 1.00×–1.10× are treated as comparable performance.
 | `encode/16-byte` | 367 | 394 | **comparable performance** |
 | `init/16-byte` | 4.444 | 4.734 | **comparable performance** |
 | `init/16-byte/string-literal` | 4.444 | 4.268 | **comparable performance** |
-| `init/empty/string-literal` | 1.112 | 2.902| **2.60× slower** |
 | `access/escaping/string` | 1.778 | 7.823 | **4.40× slower** |
 | `access/string` | 1.112 | 7.172 | **6.45× slower** |
