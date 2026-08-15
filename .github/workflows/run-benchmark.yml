@@ -1,0 +1,143 @@
+name: Run benchmark
+
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  benchmark: 
+    permissions:
+      contents: read
+      pull-requests: write
+
+    runs-on: macos-26
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+
+      - name: Update baseline
+        run: swift package --allow-writing-to-package-directory benchmark baseline update main --no-progress
+
+      - name: Upload baseline
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-baseline
+          path: .benchmarkBaselines
+          include-hidden-files: true
+      
+      - name: Checkout current
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Download baseline
+        uses: actions/download-artifact@v8
+        with:
+          name: benchmark-baseline
+          path: .benchmarkBaselines
+
+      - name: Compare results
+        run: |
+          swift package benchmark baseline compare main \
+          --filter ".*inlinestring16.*" \
+          --format markdown \
+          --no-progress | tee comparison.md
+
+      - name: Extract results
+        run: |
+          awk '
+          /^### .* metrics$/ {
+            name = $0
+            sub(/^### /, "", name)
+            sub(/ metrics$/, "", name)
+          }
+          /^\|[[:space:]]*Improvement %[[:space:]]*\|/ {
+            split($0, values, "|")
+            p50 = values[5]
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", p50)
+            printf "%s\t%s%%\n", name, p50
+          }
+          ' comparison.md
+
+      - name: Build benchmark summary
+        id: benchmark-summary
+        run: |
+          awk -v threshold=1.10 '
+          BEGIN {
+            print "## Benchmark summary" > "benchmark-summary.md"
+            print "" >> "benchmark-summary.md"
+            print "| Benchmark | p50 |" >> "benchmark-summary.md"
+            print "|---|---:|" >> "benchmark-summary.md"
+
+            print "## Significant benchmark changes" > "benchmark-comment.md"
+            print "" >> "benchmark-comment.md"
+            print "| Benchmark | p50 |" >> "benchmark-comment.md"
+            print "|---|---:|" >> "benchmark-comment.md"
+
+            significant = 0
+            has_regression = 0
+          }
+
+          /^### .* metrics$/ {
+            name = $0
+            sub(/^### /, "", name)
+            sub(/ metrics$/, "", name)
+          }
+
+          /^\|[[:space:]]*Improvement %[[:space:]]*\|/ {
+            split($0, values, "|")
+
+            improvement = values[5]
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", improvement)
+            improvement += 0
+
+            if (improvement > 0) {
+              ratio = 1 / (1 - improvement / 100)
+              result = sprintf("%.2fx faster", ratio)
+            } else if (improvement < 0) {
+              ratio = 1 - improvement / 100
+              result = sprintf("%.2fx slower", ratio)
+            } else {
+              ratio = 1
+              result = "1.00x"
+            }
+
+            printf "| `%s` | %s |\n", name, result >> "benchmark-summary.md"
+
+            if (ratio > threshold) {
+              printf "| `%s` | %s |\n", name, result >> "benchmark-comment.md"
+              significant = 1
+
+              if (improvement < 0) {
+                has_regression = 1
+              }
+            }
+          }
+
+          END {
+            if (significant == 0) {
+              print "" >> "benchmark-comment.md"
+              print "No significant changes." >> "benchmark-comment.md"
+            }
+
+            print "has_regression=" has_regression >> ENVIRON["GITHUB_OUTPUT"]
+          }
+          ' comparison.md
+
+      - name: Publish summary
+        run: cat benchmark-summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comment PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment "${{ github.event.pull_request.number }}" \
+            --repo "${{ github.repository }}" \
+            --body-file benchmark-comment.md
+
+      - name: Fail on regression
+        if: steps.benchmark-summary.outputs.has_regression == '1'
+        run: exit 1
