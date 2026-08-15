@@ -261,6 +261,10 @@ extension InlineString16: ExpressibleByStringLiteral {
     ///   As a result, the final UTF-8 byte of the string cannot be in the range `0x00...0x0F`,
     ///   since those values are reserved for the length encoding.
     public init(stringLiteral value: StringLiteralType) {
+        guard !value.isEmpty else {
+            self.init()
+            return
+        }
         self.init(value)
     }
 }
